@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>赛博朋克聊天记录生成器</title>
+  <!-- 西文字体 Rajdhani / Play（均 SIL OFL 1.1 · 免费可商用）通过 Google Fonts 链接加载；Blender Pro 引用同目录字体文件；
+       若需离线使用：可改回内嵌 base64 的 @font-face，或经本地服务器引用同目录字体文件 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Play:wght@400&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Blender Pro（商用字体）：外部引用同目录字体文件 Blender-Pro-Book.ttf（file:// 双击打开亦可加载，实测 Chromium 正常）；
+       文件缺失时回退系统已安装的 Blender Pro 或 Rajdhani */
+    @font-face {
+      font-family: 'BlenderPro';
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+      src: url('Blender-Pro-Book.ttf') format('truetype'), local('Blender Pro Book'), local('Blender Pro');
+    }
+
+    :root {
+      --bg: #07070d;
+      --panel: #0d0d17;
+      --line: #26263c;
+      --cyan: #00f6ff;
+      --red: #ff1640;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      font-family: "Rajdhani", "Microsoft YaHei", "PingFang SC", sans-serif;
+      background: var(--bg);
+      color: #d8e6f5;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .app {
+      display: flex;
+      height: 100vh
+    }
+
+    .panel {
+      width: 380px;
+      flex: none;
+      background: var(--panel);
+      border-right: 1px solid var(--line);
+      padding: 18px;
+      overflow-y: auto;
+    }
+
+    .stage {
+      flex: 1;
+      overflow: auto;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      background: #05060a;
+    }
+
+    canvas {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      background: #000;
+      border: 1px solid #14142a;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 6px;
+    }
+
+    h1 {
+      font-size: 20px;
+      letter-spacing: 2px;
+      color: var(--cyan);
+      margin: 0;
+      line-height: 1.2;
+      text-transform: uppercase;
+    }
+
+    .panel-head h1 {
+      margin: 0
+    }
+
+    h1 span {
+      color: var(--red);
+      font-size: 14px;
+      letter-spacing: 4px
+    }
+
+    html[lang="en"] h1 span {
+      font-size: 13px;
+      letter-spacing: 2px;
+    }
+
+    .lang-switch {
+      display: flex;
+      flex: none
+    }
+
+    .lang-btn {
+      background: #0b0b16;
+      border: 1px solid var(--line);
+      color: #8fa3bd;
+      border-radius: 4px;
+      font-size: 12px;
+      letter-spacing: 1px;
+      cursor: pointer;
+      font-family: inherit;
+      padding: 3px 8px;
+      line-height: 1.4;
+    }
+
+    .lang-btn.active {
+      background: var(--cyan);
+      color: #021014;
+      border-color: var(--cyan)
+    }
+
+    .field {
+      margin-bottom: 16px
+    }
+
+    label {
+      display: block;
+      font-size: 12.5px;
+      letter-spacing: 2px;
+      color: #8fa3bd;
+      margin-bottom: 6px;
+    }
+
+    input[type=text],
+    select,
+    textarea {
+      width: 100%;
+      background: #0b0b16;
+      color: #eaf7ff;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 8px 10px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    textarea {
+      resize: vertical
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--cyan)
+    }
+
+    .upload-link {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 12px;
+      letter-spacing: 1px;
+      color: var(--cyan);
+      cursor: pointer;
+    }
+
+    .upload-link:hover {
+      text-decoration: underline
+    }
+
+    .msg {
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 8px;
+      margin-bottom: 10px;
+      background: #0a0a14
+    }
+
+    .msg .head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px
+    }
+
+    .msg select {
+      padding: 4px 6px;
+      font-size: 13px;
+      flex: 1
+    }
+
+    .msg .del {
+      background: none;
+      border: none;
+      color: var(--red);
+      font-size: 17px;
+      cursor: pointer;
+      padding: 0 6px;
+      line-height: 1;
+    }
+
+    .btn {
+      width: 100%;
+      background: linear-gradient(90deg, var(--red), #7a0020);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 9px;
+      font-size: 14px;
+      letter-spacing: 2px;
+      cursor: pointer;
+      margin-top: 10px;
+      font-family: inherit;
+    }
+
+    .btn.primary {
+      background: linear-gradient(90deg, var(--cyan), #04547a);
+      color: #021014
+    }
+
+    .btn:hover {
+      filter: brightness(1.15)
+    }
+
+    .env {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end
+    }
+
+    .env>* {
+      flex: 1
+    }
+
+    .hint {
+      font-size: 11px;
+      color: #5f7188;
+      margin-top: 12px;
+      line-height: 1.8
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <aside class="panel">
+      <div class="panel-head">
+        <h1><span data-i18n="appTitle">赛博朋克聊天记录生成器</span></h1>
+        <div class="lang-switch" role="group" aria-label="Language / 语言">
+          <button type="button" class="lang-btn active" data-lang="zh">中文</button>
+          <button type="button" class="lang-btn" data-lang="en">EN</button>
+        </div>
+      </div>
+      <div class="field">
+        <label data-i18n="userName">对话用户名</label>
+        <input id="inUser" type="text" value="朱迪 · 阿尔瓦雷兹" placeholder="输入对话用户的用户名" data-i18n-ph="userNamePh" />
+      </div>
+
+      <div class="field">
+        <label data-i18n="avatarLabel">左侧图片</label>
+        <select id="selAvatar">
+          <option value="avatar-Judy.png" data-i18n="avatarJudy">avatar-Judy.png（默认）</option>
+          <option value="avatar-Panam.png" data-i18n="avatarPanam">avatar-Panam.png</option>
+          <option value="" data-i18n="avatarNone">不使用图片</option>
+        </select>
+        <label class="upload-link" for="fileAvatar" data-i18n="avatarCustom">上传自定义图片…</label>
+        <input id="fileAvatar" type="file" accept="image/*" hidden />
+      </div>
+
+      <div class="field">
+        <label data-i18n="msgListLabel">消息列表（对方=蓝色 · 我方=绿色）</label>
+        <div id="msgList"></div>
+        <button id="btnAdd" class="btn" data-i18n="addMsg">＋ 添加消息</button>
+      </div>
+      <div class="field env">
+        <div style="flex:0 0 96px">
+          <label data-i18n="scale">导出倍率</label>
+          <select id="selScale">
+            <option value="1">1x</option>
+            <option value="2" selected>2x</option>
+            <option value="3">3x</option>
+          </select>
+        </div>
+        <button id="btnExport" class="btn primary" data-i18n="exportBtn">导出 PNG</button>
+      </div>
+      <p class="hint" data-i18n-html="hint">
+        · 画布逻辑宽度 1200px，高度随消息自动生成。<br />
+        · 头像读取同目录图片文件（avatar-Judy.png / avatar-Panam.png），替换同名文件即可换图。<br />
+        · 双击打开时头像可正常显示；导出 PNG 会被浏览器安全限制拦截，按弹窗提示选择一次图片文件即可自动导出，或用本地服务器（python -m http.server）。<br />
+        · 字体：中英可切换。英文页头/用户名使用 Blender Pro（外部引用同目录 Blender-Pro-Book.ttf，缺失时回退 Rajdhani）；暗红细字使用 Play；消息体西文使用 Rajdhani（英文字重 500；Google Fonts，需联网，离线回退系统字体）。<br />
+        · 所有尺寸、间距、颜色参数均可改：见脚本顶部 CONFIG / PALETTE。
+      </p>
+    </aside>
+    <main class="stage">
+      <canvas id="cv"></canvas>
+    </main>
+  </div>
+
+  <script> "use strict";
+
+    /* ============================================================
+       画布配置（尺寸 / 间距 / 字号 = 可修改变量）
+       ============================================================ */
+    const CONFIG = {
+      width: 1200,               // 画布逻辑宽度（px）
+      avatarW: 150,               // 头像显示宽度（px）；高度按图片比例自动（不拉伸）
+      avatarMarginX: 15,           // 头像左边距（px）：头像左缘距画布左缘（0 = 贴左缘）
+      avatarMarginY: 35,           // 头像顶边距（px）：头像顶缘距画布顶缘（0 = 贴顶缘）
+      gradHeight: 600,           // 顶部/底部渐变红黑带的高度（仅观感，不影响图片高度）
+      marginLeft: 154,            // 左边距：画布左缘 →「消息」下划线左端（= 底部暗红线左端）；icon x = marginLeft + hdrLinePadX，头部与消息区均由此派生
+      marginRight: 50,           // 右边距：上方暗红线右端（= 底部暗红线右端 = 我方气泡右端）→ 画布右缘
+      fontFamily: '"Rajdhani","Microsoft YaHei","PingFang SC",sans-serif',
+      fontMeta: '"Play","Rajdhani",sans-serif',                       // 暗红细字（hdrCode / hdrVer）
+      fontHeaderZh: '"Microsoft YaHei","PingFang SC",sans-serif',     // 中文画布标题 / 用户名
+      fontHeaderEn: '"BlenderPro","Rajdhani","Microsoft YaHei","PingFang SC",sans-serif', // 英文画布标题 / 用户名
+
+      /* ---- 头部（全部可配置颜色/位置/字号） ---- */
+      hdrCode: 'TRN_TCLAS_800095', // 顶部细红字文本
+      hdrCodeSize: 19,             // 细红字字号
+      hdrCodeY: 150,               // 顶部细红字基线 y（唯一绝对Y锚，其余Y全部由此派生）
+      hdrCodeToIconGapY: 16,       // 细红字文字下缘 → 信封 icon 顶的距离
+
+      hdrIconSize: 40,             // 信封 icon 尺寸（高 = 0.65×）
+      hdrIconGap: 16,              // 信封 icon 右缘与「消息」左缘间距
+
+      hdrTitleSize: 34,            // “消息”字号（中文）
+      hdrTitleSizeEn: 43,          // “MESSAGES”字号（英文，单独可调）
+      hdrTitleWeight: 400,         // “消息”字重（常规=400）；中心Y = 信封icon中心Y（基线由字形反推）
+      hdrArrowGap: 5,              // “消息”右缘与“>”箭头左缘间距
+      hdrArrowSize: 34,            // “>”箭头包围盒尺寸（对照 arrow.svg）；中心Y = 信封icon中心Y
+
+      hdrLineGapY: 20,             // 信封 icon 下缘 → 青色下划线（线心）的距离
+      hdrLineW: 4,                 // 青色下划线粗细
+      hdrLinePadX: 16,             // 下划线两端延伸长度；icon 左端 x = marginLeft + 此值（下划线左端比 icon 多伸出的量）
+      hdrUserNameGap: 40,          // 用户名与箭头终点间距
+      hdrUserNameSize: 45,         // 用户名字号（中文；中心Y = 信封icon中心Y；基线由字形反推）
+      hdrUserNameSizeEn: 55,       // 用户名字号（英文，单独可调；中心Y = 信封icon中心Y；基线由字形反推）
+      hdrUserNameWeight: 400,      // 用户名字重（常规=400）
+      hdrUserNameLineGap: 15,      // 用户名下划线Y = 用户名字形下缘 + 此值
+      hdrUserNameLineExtend: 10,   // 用户名青色下划线两端延伸长度（px，在文本宽度基础上各向外多延伸）
+      hdrUserNameLineExtGap: 15,   // 暗红延伸线与用户名下划线的水平间距（起点从下线右端右移）
+      hdrUserNameLineExtW: 1,      // 暗红延伸线粗细
+      hdrVer: 'VER_M6A6T6I',       // 暗红延伸线上方的细红字文本
+      hdrVerSize: 16,              // 细红字字号
+      hdrVerGapY: 7,               // 暗红延伸线 → VER 文字下缘的距离
+      hdrVerRightPad: 2,           // 细红字向右补偿像素（抵消末尾字形自带留白，0=按文本右缘对齐）
+      msgStartGap: 42,             // 消息区起始 y = 青色下划线下缘 + 此偏移
+      msgIndent: 30,               // 消息区（气泡区左起点 x = 消息 icon 左缘 + 此缩进（icon x = marginLeft+hdrLinePadX=170 → 200）
+      msgFontSize: 28,
+      msgWeightEn: 500,            // 英文消息文字字重（Rajdhani 真实档位：300/400/500/600/700，已全部加载；中文固定 400）
+      msgLineHeight: 42,           // 多行时行与行基线间距
+      bubblePadX: 16,
+      bubblePadY: 14,              // 单行文字上下留白（气泡最小高度 = 字号字形高度 + 2×此值）
+      fontAscent: 24,             // 28px 字体的字形基线以上高度（兜底值，会优先用浏览器实测）
+      fontDescent: 8,             // 28px 字体的字形基线以下高度（兜底值）
+      gapBetween: 42,            // 气泡间隔
+      maxBubbleRatio: 0.72,      // 气泡最大宽度 = 中间区宽度 × 此比例
+      bevel: 20,                 // 斜角切角高度（左上/右下斜边）
+      tailDrop: 12,              // 尾巴垂直下落高度（px）：尾巴尖端低于气泡底边的距离（原固定等于 bevel，现独立可调）
+      tailFront: 22,             // 尾巴前沿距气泡左壁（镜像后为右壁）
+      tailSlope: 14,             // 尾巴斜边的水平宽度（越小越陡，越贴垂直方向；原45°时为 bevel）
+      minBubbleW: 80,            // 气泡主体最小宽度（≥ bevel + tailFront）
+      borderW: 2,                // 气泡描边宽度
+      bottomGap: 200,            // 底部留白：图片高度 = 内容高度 + 此值（与 gradHeight 无关）；若需底部红线可见需 bottomGap + bevel > bottomLineGap（默认即 > 140）
+
+      bottomLineGap: 100,        // 底部暗红线距最后消息底边的距离（左右端 = marginLeft / width - marginRight）
+    };
+    /* 配色（全部可修改） */
+    const PALETTE = {
+      red: '#3b0507',          // 渐变红
+      black: '#050505',          // 底色黑
+      cyan: '#7ee2f8',          // 图标 / “消息”霓虹青
+
+      userColor: '#7ee2f8',     // 用户名
+      userNameOutline: '#7ee2f8',
+
+      hdrCodeColor: '#621914',   // 顶部细红字
+      hdrIconColor: '#7ee2f8',   // 信封 icon
+      hdrTitleColor: '#7ee2f8',   // “消息”
+      hdrArrowColor: '#7ee2f8',   // “>”
+      hdrLineColor: '#7ee2f8',   // 下划线
+      userNameLineExtColor: '#a43a2e', // 用户名下划线右侧的暗红延伸线
+      blueBg: '#181c1d',     // 对方气泡底色（蓝）
+      blueBorder: '#56e9e3',     // 对方气泡边框（蓝）
+      greenBg: '#1e4e3e',     // 我方气泡底色（绿）
+      greenBorder: '#4bdfad',     // 我方气泡边框（绿）
+      bubbleText: '#66cecd',     // 对方文字颜色（蓝方气泡）
+      bubbleTextMe: '#49e0ad',    // 我方文字颜色（绿方气泡）
+      placeholder: '#5b6c80',     // 空列表占位文字
+    };
+    let cv = document.getElementById('cv');
+    let ctx = cv.getContext('2d');
+    // Safari/WebKit 下画布一旦被本地图片污染（file:// 打开时），resize 也无法清除；
+    // 需要换成全新的 <canvas> 元素才能恢复干净画布（导出救援 / 改用上传图片时使用）
+    function freshCanvas() {
+      const old = cv;
+      const n = document.createElement('canvas');
+      n.id = 'cv';
+      old.replaceWith(n);
+      cv = n;
+      ctx = n.getContext('2d');
+    }
+    const $ = (id) => document.getElementById(id);
+    const msgListEl = $('msgList');
+    const selAvatar = $('selAvatar');
+    const fileInput = $('fileAvatar');
+    // 默认聊天记录（中/英各一套）：初始化按语言填充；切换语言时，仍是旧语言默认原文的消息自动换成新语言版本，改过的消息保持原样
+    const DEFAULT_MESSAGES = {
+      zh: [
+        { side: 'other', text: '有些话我非说不可' },
+        { side: 'other', text: '总之，就是……' },
+        { side: 'other', text: '我想说，谢谢你，V。谢谢你跟我在一起，谢谢你做的一切。谢谢你做自己' },
+        { side: 'other', text: '我就想让你知道。你特别棒。' },
+        { side: 'other', text: '但现在我得找个洞钻进去，尴尬死了 -.-' },
+        { side: 'other', text: '<3' },
+        { side: 'me', text: '啊哟喂，我的小宝贝儿难为情了还' },
+        { side: 'other', text: '我的妈呀别说了 xD' },
+        { side: 'other', text: '一点都不好笑！！！' },
+      ],
+      en: [
+        { side: 'other', text: "¡Hola calabacita!" },
+        { side: 'other', text: "Thinking about you <3" },
+        { side: 'other', text: "Wanna guess what?" },
+        { side: 'me', text: "That if I were an animal, I'd totally be a dog." },
+        { side: 'me', text: "Because I'm cute, loyal and love to lick eeeeeverything" },
+        { side: 'other', text: 'wow' },
+        { side: 'other', text: 'Not sure if I should be blown away that you read my mind, or offended and disappointed at your crass attempt at a "joke"' },
+        { side: 'me', text: "You're complex, you contain multitudes, you can feel both at once." },
+        { side: 'other', text: "Haha true, I can xD" },
+      ],
+    };
+    const messages = DEFAULT_MESSAGES.zh.map((m) => ({ side: m.side, text: m.text }));
+    let avatarImage = null;
+    let avatarSources = {};       // 挑选的目录图片 -> Image
+    let customAvatar = null;      // 上传图片 dataURL
+    let customImageSource = null; // 上传图片 Image
+    /* ---------- 工具 ---------- */
+    function setFont(px, weight, family) {
+      ctx.font = (weight ? weight + ' ' : '') + px + 'px ' + (family || CONFIG.fontFamily);
+    }
+    // 画布页头字体：中文用系统字体栈，英文用 BlenderPro（缺失自动回退 Rajdhani）
+    function headerFont() { return LANG === 'en' ? CONFIG.fontHeaderEn : CONFIG.fontHeaderZh; }
+    // 画布页头标题文本：英文固定大写 MESSAGES
+    function canvasTitle() { return LANG === 'en' ? 'MESSAGES' : '消息'; }
+    // 画布页头字号：中英文可分别配置（英文默认与中文相同，可单独调整）
+    function titleSize() { return LANG === 'en' ? CONFIG.hdrTitleSizeEn : CONFIG.hdrTitleSize; }
+    function userNameSize() { return LANG === 'en' ? CONFIG.hdrUserNameSizeEn : CONFIG.hdrUserNameSize; }
+    // 消息文字字重：英文按 msgWeightEn（当前 500 Medium），中文保持常规
+    function msgWeight() { return LANG === 'en' ? CONFIG.msgWeightEn : 400; }
+    // 合成加粗：canvas 字体字重对 CJK 常不生效（实测 400/700 完全一样），
+    // 这里用多次偏移绘制让字重真实变粗。weight>400 时加粗，≤400 则正常单次绘制。
+    function drawWeightText(text, x, baseY, weight) {
+      ctx.fillText(text, x, baseY);
+      if (weight && weight > 400) {
+        const off = Math.max(1, Math.round((weight - 400) / 300));
+        ctx.fillText(text, x - off, baseY);
+        ctx.fillText(text, x + off, baseY);
+        ctx.fillText(text, x, baseY - off);
+        ctx.fillText(text, x, baseY + off);
+      }
+    }
+    function loadImage(src) {
+      return new Promise((res) => {
+        const im = new Image();
+        im.onload = () => res(im);
+        im.onerror = () => res(null);
+        im.src = src;
+      });
+    }
+    // 加载同目录头像文件（avatar-Judy.png / avatar-Panam.png，直接替换文件即可换图）：
+    // · http(s) 访问（如 python -m http.server）→ fetch 读为 blob URL，画布不被污染，导出正常
+    // · file:// 双击打开 → fetch 被浏览器拦截，回退为 <img> 直接加载，可正常显示；
+    //   但此时画布会被标记为 tainted，导出 PNG 需改用「上传自定义图片」或走本地服务器
+    async function resolveAvatar(name) {
+      try {
+        const r = await fetch(name, { cache: 'no-store' });
+        if (r.ok) {
+          const url = URL.createObjectURL(await r.blob());
+          const im = await loadImage(url);
+          if (im) return im;
+        }
+      } catch (e) { /* file:// 下 fetch 不可用，继续用 <img> 加载 */ }
+      return loadImage(name);
+    }
+    async function ensureCurrentAvatar() {
+      const sel = selAvatar.value;
+      if (sel === 'custom') {
+        if (!customAvatar) { avatarImage = null; return; }
+        if (!customImageSource) customImageSource = await loadImage(customAvatar);
+        avatarImage = customImageSource;
+      } else if (!sel) {
+        avatarImage = null;
+      } else {
+        if (!avatarSources[sel]) avatarSources[sel] = await resolveAvatar(sel);
+        avatarImage = avatarSources[sel];
+      }
+    }
+
+    /* ---------- 文本换行 ---------- */
+    // 西文按单词换行（不拆词，仅超长单词才逐字拆），CJK 及标点逐字换行；断行处的空格丢弃
+    function wrapLines(text, maxW) {
+      const out = [];
+      const splitLongWord = (word) => {   // 超长单词兜底：逐字拆到放得下
+        const segs = [];
+        let cur = '';
+        for (const ch of word) {
+          if (cur && ctx.measureText(cur + ch).width > maxW) { segs.push(cur); cur = ch; }
+          else { cur += ch; }
+        }
+        if (cur) segs.push(cur);
+        return segs;
+      };
+      for (const par of String(text).split('\n')) {
+        if (par === '') { out.push(''); continue; }
+        // token：西文单词（含数字、撇号）| 空白串 | 单字符（CJK、标点、符号等）
+        const tokens = par.match(/[A-Za-z0-9][A-Za-z0-9'’]*|\s+|[^\s]/gu) || [];
+        let cur = '';
+        for (const tk of tokens) {
+          if (/^\s+$/.test(tk)) { if (cur) cur += tk; continue; }   // 行首空格忽略
+          if (ctx.measureText(cur + tk).width > maxW) {
+            if (cur) { out.push(cur.replace(/\s+$/, '')); cur = ''; }
+            if (ctx.measureText(tk).width > maxW) {
+              const segs = splitLongWord(tk);
+              for (let i = 0; i < segs.length - 1; i++) out.push(segs[i]);
+              cur = segs[segs.length - 1] || '';
+            } else {
+              cur = tk;
+            }
+          } else {
+            cur += tk;
+          }
+        }
+        out.push(cur.replace(/\s+$/, ''));
+      }
+      return out;
+    }
+    /* ---------- 气泡路径：对应 chat-bubble.svg ----------
+         主体四角斜角切边 b；尾巴在左下角（mirrored 为右下角）：
+         底边 → 尾前沿(tailFront) → 斜线下落 tailDrop（水平宽度 tailSlope）→ 平切短边 → 垂直壁面闭合 */
+    function traceBubble(x, y, w, h, b, tailDrop, tailFront, tailSlope, mirrored) {
+      ctx.beginPath();
+      if (mirrored) {
+        ctx.moveTo(x + w, y + b);
+        ctx.lineTo(x + w - b, y);
+        ctx.lineTo(x, y);
+        ctx.lineTo(x, y + h - b);
+        ctx.lineTo(x + b, y + h);
+        ctx.lineTo(x + w - tailFront, y + h);
+        ctx.lineTo(x + w - tailFront + tailSlope, y + h + tailDrop);
+        ctx.lineTo(x + w, y + h + tailDrop);
+      } else {
+        ctx.moveTo(x, y + b);
+        ctx.lineTo(x + b, y);
+        ctx.lineTo(x + w, y);
+        ctx.lineTo(x + w, y + h - b);
+        ctx.lineTo(x + w - b, y + h);
+        ctx.lineTo(x + tailFront, y + h);
+        ctx.lineTo(x + tailFront - tailSlope, y + h + tailDrop);
+        ctx.lineTo(x, y + h + tailDrop);
+      }
+      ctx.closePath();
+    }
+    /* ---------- 布局计算 ---------- */
+    // 头部Y派生：所有元素 Y 均由唯一绝对锚 hdrCodeY（顶部细红字基线）相对计算，
+    // 距离基准统一按各配置注释（下缘 / 线心 / 字形重心反推），避免写死绝对像素。
+    function measureGlyph(text, px, weight, family) {
+      const prevFont = ctx.font;
+      setFont(px, weight, family);
+      const tm = ctx.measureText(text);
+      ctx.font = prevFont;
+      return {
+        asc: tm.actualBoundingBoxAscent || px * 0.8,
+        desc: tm.actualBoundingBoxDescent || px * 0.2,
+      };
+    }
+    function headerAnchor() {
+      const codeDesc = measureGlyph(CONFIG.hdrCode, CONFIG.hdrCodeSize, 400, CONFIG.fontMeta).desc;
+      const iconTop = CONFIG.hdrCodeY + codeDesc + CONFIG.hdrCodeToIconGapY;
+      const iconH = CONFIG.hdrIconSize * 0.65;
+      return {
+        iconTop,
+        iconH,
+        iconCenter: iconTop + iconH / 2,
+        iconBottom: iconTop + iconH,
+        lineCenterY: iconTop + iconH + CONFIG.hdrLineGapY,
+        lineBottomY: iconTop + iconH + CONFIG.hdrLineGapY + CONFIG.hdrLineW / 2,
+      };
+    }
+    // 消息区起点：跟随「消息」icon（icon x = marginLeft + hdrLinePadX）—— x = icon x + msgIndent；y = 青色下划线下缘 + msgStartGap
+    function msgArea() {
+      return {
+        x: CONFIG.marginLeft + CONFIG.hdrLinePadX + CONFIG.msgIndent,
+        y: headerAnchor().lineBottomY + CONFIG.msgStartGap,
+      };
+    }
+    // 头部完整几何：标题/用户名/VER 基线由字形反推（文字重心与 icon 中心同高），供 drawHeader 使用
+    function headerGeometry(name) {
+      const a = headerAnchor();
+      const title = measureGlyph(canvasTitle(), titleSize(), CONFIG.hdrTitleWeight, headerFont());
+      const ver = measureGlyph(CONFIG.hdrVer, CONFIG.hdrVerSize, 400, CONFIG.fontMeta);
+      const ng = measureGlyph(name, userNameSize(), CONFIG.hdrUserNameWeight, headerFont());
+      const nameLineY = a.iconCenter + (ng.asc + ng.desc) / 2 + CONFIG.hdrUserNameLineGap;
+      return {
+        iconTop: a.iconTop,
+        iconCenter: a.iconCenter,
+        titleBase: a.iconCenter + (title.asc - title.desc) / 2,
+        arrowTop: a.iconCenter - CONFIG.hdrArrowSize / 2,
+        nameBase: a.iconCenter + (ng.asc - ng.desc) / 2,
+        nameLineY,
+        lineCenterY: a.lineCenterY,
+        verBase: nameLineY - CONFIG.hdrVerGapY - ver.desc,
+      };
+    }
+    function computeLayout(msgs) {
+      const cw = CONFIG.width - msgArea().x - CONFIG.marginRight;
+      const maxW = Math.floor(cw * CONFIG.maxBubbleRatio);
+      const inner = maxW - CONFIG.bubblePadX * 2;
+      setFont(CONFIG.msgFontSize, msgWeight(), CONFIG.fontFamily);
+
+      const items = [];
+      // 实测字形高度（有 measureText 指标则优先），保证单行气泡 = 字体高度 + 上下边距
+      const tm = ctx.measureText('中AgW');
+      const tAsc = tm.actualBoundingBoxAscent || CONFIG.fontAscent;
+      const tDesc = tm.actualBoundingBoxDescent || CONFIG.fontDescent;
+      let cursor = msgArea().y;
+      for (const m of msgs) {
+        const lines = wrapLines(m.text, inner);
+        let w = 0;
+        for (const ln of lines) w = Math.max(w, ctx.measureText(ln).width);
+        const bw = Math.min(maxW, Math.max(w + CONFIG.bubblePadX * 2, CONFIG.minBubbleW));
+        const bh = CONFIG.bubblePadY * 2 + tAsc + tDesc + Math.max(0, lines.length - 1) * CONFIG.msgLineHeight;
+        items.push({ side: m.side, lines, y: cursor, w: bw, h: bh, ascent: tAsc });
+        cursor += bh + CONFIG.tailDrop + CONFIG.gapBetween;
+      }
+      if (!items.length) {
+        const tip = L10N[LANG].canvasPlaceholder;
+        setFont(CONFIG.msgFontSize, msgWeight(), CONFIG.fontFamily);
+        const tw = Math.max(CONFIG.minBubbleW, ctx.measureText(tip).width + CONFIG.bubblePadX * 2);
+        const bh = CONFIG.bubblePadY * 2 + tAsc + tDesc;
+        items.push({ side: 'other', lines: [tip], y: msgArea().y, w: tw, h: bh, ascent: tAsc, placeholder: true });
+        cursor = msgArea().y + items[0].h + CONFIG.tailDrop + CONFIG.gapBetween;
+      }
+      const totalH = cursor - CONFIG.gapBetween + CONFIG.bottomGap;
+      return { items, totalH };
+    }
+    /* ---------- 绘制背景 ---------- */
+    // 红黑渐变（背景与信封镂空折缝共用，保证颜色完全一致）
+    function backgroundGradient(H) {
+      let topG = CONFIG.gradHeight;
+      let botG = CONFIG.gradHeight;
+      if (topG + botG > H) { topG = H / 2; botG = H / 2; }
+      const g = ctx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, PALETTE.red);
+      g.addColorStop(topG / H, PALETTE.black);
+      g.addColorStop((H - botG) / H, PALETTE.black);
+      g.addColorStop(1, PALETTE.red);
+      return g;
+    }
+    function drawBackground(H) {
+      ctx.fillStyle = backgroundGradient(H);
+      ctx.fillRect(0, 0, CONFIG.width, H);
+    }
+    /* ---------- 左侧图片 ---------- */
+    // 头像按固定大小展示：宽 = avatarW，高 = 图片等比高度（与页面高度无关），
+    // 左上缘位置由 avatarMarginX / avatarMarginY 控制（可配置边距）。
+    // 左侧栏整页高度归头像区、正下方不会出现消息区，故头像高度不影响消息区位置。
+    function drawAvatar() {
+      if (!avatarImage) return;
+      const im = avatarImage;
+      const iw = im.naturalWidth || im.width;
+      const ih = im.naturalHeight || im.height;
+      if (!iw || !ih) return;
+      const w = CONFIG.avatarW;
+      ctx.drawImage(im, 0, 0, iw, ih, CONFIG.avatarMarginX, CONFIG.avatarMarginY, w, w * ih / iw);
+    }
+    /* ---------- 顶部标题区 ---------- */
+    function drawEnvelope(ix, iy, s, H) {
+      const w = s, h = s * 0.65;
+      ctx.save();
+
+      // 面性：主体整块实心填充（直角矩形）
+      ctx.fillStyle = PALETTE.hdrIconColor;
+      ctx.fillRect(ix, iy, w, h);
+
+      // 封口折缝：模拟信封折叠遮挡——
+      // 上 V（左上/右上 → 顶点 ≈0.75×高）表示上盖折痕；下倒 V（左下/右下 → 汇合点 ≈0.5×高）
+      // 与上 V 重叠的部分被上盖遮住不显示，故下倒 V 只画两角可见的“尾巴”：
+      // 尾巴与上 V 交点 x0 = w/(2·(f+1−b))，y0 = (2·f·h/w)·x0（上 V 折线方程 y = 2f·h·x / w）
+      const f = 0.75, b = 0.45;
+      const xi = w / (2 * (f + 1 - b));
+      const yi = (2 * f * h / w) * xi;
+      ctx.beginPath();
+      ctx.moveTo(ix, iy);
+      ctx.lineTo(ix + w / 2, iy + h * f);
+      ctx.lineTo(ix + w, iy);
+      ctx.moveTo(ix + xi, iy + yi);
+      ctx.lineTo(ix, iy + h);
+      ctx.moveTo(ix + w - xi, iy + yi);
+      ctx.lineTo(ix + w, iy + h);
+      ctx.lineWidth = Math.max(2, w * 0.06);
+      ctx.lineCap = 'butt';
+      ctx.lineJoin = 'miter';
+      ctx.strokeStyle = backgroundGradient(H);
+      ctx.stroke();
+      ctx.restore();
+    }
+    function drawArrow(ix, iy, s) { const w = s, h = s; ctx.save(); ctx.lineWidth = Math.max(2, s * 0.11); ctx.lineCap = 'butt'; ctx.lineJoin = 'miter'; ctx.strokeStyle = PALETTE.hdrArrowColor; ctx.beginPath(); ctx.moveTo(ix + w * 0.396, iy + h * 0.229); ctx.lineTo(ix + w * 0.625, iy + h * 0.5); ctx.lineTo(ix + w * 0.396, iy + h * 0.771); ctx.stroke(); ctx.restore(); }
+    function drawHeader(name, H) {
+      const g = headerGeometry(name);
+      const x0 = CONFIG.marginLeft + CONFIG.hdrLinePadX;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'alphabetic';
+
+      // 顶部细红字（唯一绝对Y锚，其余Y均由它派生）
+      setFont(CONFIG.hdrCodeSize, 400, CONFIG.fontMeta);
+      ctx.fillStyle = PALETTE.hdrCodeColor;
+      ctx.fillText(CONFIG.hdrCode, x0, CONFIG.hdrCodeY);
+
+      // 信封 icon（顶 = 细红字下缘 + hdrCodeToIconGapY）→ 「消息」 → 「>」箭头（标题/箭头与 icon 中心对齐）
+      drawEnvelope(x0, g.iconTop, CONFIG.hdrIconSize, H);
+      setFont(titleSize(), CONFIG.hdrTitleWeight, headerFont());
+      ctx.fillStyle = PALETTE.hdrTitleColor;
+      const titleW = ctx.measureText(canvasTitle()).width;
+      const titleX = x0 + CONFIG.hdrIconSize + CONFIG.hdrIconGap;
+      drawWeightText(canvasTitle(), titleX, g.titleBase, CONFIG.hdrTitleWeight);
+      const arrowX = titleX + titleW + CONFIG.hdrArrowGap;
+      drawArrow(arrowX, g.arrowTop, CONFIG.hdrArrowSize);
+
+      // 用户名：位于箭头右侧，更大字号，中心Y = icon 中心Y；下划线与前方那条同粗同色、长度=用户名实际宽度，两端延伸
+      const arrowEnd = arrowX + CONFIG.hdrArrowSize * 0.68;
+      const nameX = arrowEnd + CONFIG.hdrUserNameGap;
+      setFont(userNameSize(), CONFIG.hdrUserNameWeight, headerFont());
+      ctx.fillStyle = PALETTE.userColor;
+      const nameW = ctx.measureText(name).width;
+      drawWeightText(name, nameX, g.nameBase, CONFIG.hdrUserNameWeight);
+      const nameLineX0 = nameX - CONFIG.hdrUserNameLineExtend;
+      const nameLineX1 = nameX + nameW + CONFIG.hdrUserNameLineExtend;
+      ctx.strokeStyle = PALETTE.hdrLineColor;
+      ctx.lineWidth = CONFIG.hdrLineW;
+      ctx.beginPath();
+      ctx.moveTo(nameLineX0, g.nameLineY);
+      ctx.lineTo(nameLineX1, g.nameLineY);
+      ctx.stroke();
+      // 用户名下划线右侧的暗红延伸线：起点从青色下划线（含两端延伸）右端向右偏移 hdrUserNameLineExtGap，与下划线同一 y（正中间对齐），粗细独立可配，延伸到接近右边缘
+      const extLineX = nameLineX1 + CONFIG.hdrUserNameLineExtGap;
+      ctx.strokeStyle = PALETTE.userNameLineExtColor;
+      ctx.lineWidth = CONFIG.hdrUserNameLineExtW;
+      ctx.beginPath();
+      ctx.moveTo(extLineX, g.nameLineY);
+      ctx.lineTo(CONFIG.width - CONFIG.marginRight, g.nameLineY);
+      ctx.stroke();
+
+      // VER_M6A6T6I：细红字，位于暗红延伸线上方，右缘与延伸线右缘对齐；基线 = (延伸线Y − hdrVerGapY) − 字形下缘高度
+      setFont(CONFIG.hdrVerSize, 400, CONFIG.fontMeta);
+      ctx.textAlign = 'right';
+      ctx.fillStyle = PALETTE.hdrCodeColor;
+      ctx.fillText(CONFIG.hdrVer, CONFIG.width - CONFIG.marginRight + CONFIG.hdrVerRightPad, g.verBase);
+      ctx.textAlign = 'left';
+      // 三元素下方的 cyan 线：线心 = icon 下缘 + hdrLineGapY；左端 marginLeft，右端到箭头终点再延伸
+      ctx.strokeStyle = PALETTE.hdrLineColor;
+      ctx.lineWidth = CONFIG.hdrLineW;
+      ctx.beginPath();
+      ctx.moveTo(CONFIG.marginLeft, g.lineCenterY);
+      ctx.lineTo(arrowEnd + CONFIG.hdrLinePadX, g.lineCenterY);
+      ctx.stroke();
+    }
+    /* ---------- 消息气泡 ---------- */
+    function drawMessages(laid) {
+      const xOther = msgArea().x;
+      const xMe = CONFIG.width - CONFIG.marginRight;
+      setFont(CONFIG.msgFontSize, msgWeight(), CONFIG.fontFamily);
+
+      for (const it of laid.items) {
+        const isMe = it.side === 'me';
+        const x = isMe ? xMe - it.w : xOther;
+
+        ctx.save();
+        ctx.lineWidth = CONFIG.borderW;
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = isMe ? PALETTE.greenBorder : PALETTE.blueBorder;
+        ctx.fillStyle = isMe ? PALETTE.greenBg : PALETTE.blueBg;
+        traceBubble(x, it.y, it.w, it.h, CONFIG.bevel, CONFIG.tailDrop, CONFIG.tailFront, CONFIG.tailSlope, isMe);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = it.placeholder ? PALETTE.placeholder : (isMe ? PALETTE.bubbleTextMe : PALETTE.bubbleText);
+        setFont(CONFIG.msgFontSize, msgWeight(), CONFIG.fontFamily);
+        const base = it.y + CONFIG.bubblePadY + it.ascent;
+        it.lines.forEach((ln, i) => ctx.fillText(ln, x + CONFIG.bubblePadX, base + i * CONFIG.msgLineHeight));
+        ctx.restore();
+      }
+    }
+    /* ---------- 底部暗红线 ---------- */
+    function drawBottomLine(laid) {
+      const last = laid.items[laid.items.length - 1];
+      const y = last ? last.y + last.h + CONFIG.bottomLineGap : msgArea().y + CONFIG.bottomLineGap;
+      ctx.strokeStyle = PALETTE.userNameLineExtColor; // 与顶部暗红延伸线同色
+      ctx.lineWidth = CONFIG.hdrUserNameLineExtW;     // 与顶部暗红延伸线同粗细
+      ctx.beginPath();
+      ctx.moveTo(CONFIG.marginLeft, y);
+      ctx.lineTo(CONFIG.width - CONFIG.marginRight, y);
+      ctx.stroke();
+    }
+
+    /* ---------- 主渲染 ---------- */
+    async function render() {
+      renderPending = false;
+      await ensureCurrentAvatar();
+      // 等内嵌西文字体就绪再量文本/绘制，避免首次渲染先用后备字体导致测量偏差
+      if (document.fonts && document.fonts.load) {
+        try {
+          await Promise.race([
+            Promise.all([
+              CONFIG.fontFamily,
+              CONFIG.fontMeta,
+              CONFIG.fontHeaderZh,
+              CONFIG.fontHeaderEn,
+            ].map((f) => document.fonts.load('16px ' + f).catch(() => [])).concat([document.fonts.load(CONFIG.msgWeightEn + ' 16px ' + CONFIG.fontFamily).catch(() => [])])),   // 单个字体失败不阻断其余加载；末尾追加英文消息字重预加载
+            new Promise((res) => setTimeout(res, 1500)),   // 字体请求挂起时最多等 1.5s，避免卡住渲染
+          ]);
+        } catch (e) { /* 字体不可用时静默回退 */ }
+      }
+      const msgs = messages.filter((m) => String(m.text).trim() !== '');
+      const name = $('inUser').value.trim() || 'UNKNOWN';
+      const scale = Number($('selScale').value);
+
+      const laid = computeLayout(msgs);
+      const H = laid.totalH;
+
+      cv.width = Math.round(CONFIG.width * scale);
+      cv.height = Math.round(H * scale);
+      ctx.setTransform(scale, 0, 0, scale, 0, 0);
+
+      drawBackground(H);
+      drawAvatar();
+      drawHeader(name, H);
+      drawMessages(laid);
+      drawBottomLine(laid);
+    }
+    /* ---------- UI ---------- */
+    let msgSeq = 0;
+    let LANG = 'zh';
+    // 文案表：zh = 页面既有中文，en = 英文；仅界面文案，不涉及用户消息内容
+    const L10N = {
+      zh: {
+        appTitle: '赛博朋克聊天记录生成器',
+        docTitle: '赛博朋克聊天记录生成器',
+        userName: '对话用户名',
+        userNamePh: '输入对话用户的用户名',
+        defaultUserName: '朱迪 · 阿尔瓦雷兹',
+        avatarLabel: '左侧图片',
+        avatarJudy: 'avatar-Judy.png（默认）',
+        avatarPanam: 'avatar-Panam.png',
+        avatarCustom: '上传自定义图片…',
+        avatarNone: '不使用图片',
+        avatarCustomUploaded: '自定义图片（已上传）',
+        msgListLabel: '消息列表（对方=蓝色 · 我方=绿色）',
+        addMsg: '＋ 添加消息',
+        scale: '导出倍率',
+        exportBtn: '导出 PNG',
+        sideOther: '对方 · 蓝',
+        sideMe: '我方 · 绿',
+        delTitle: '删除',
+        msgPh: '输入消息内容…',
+        canvasPlaceholder: '（请输入聊天消息）',
+        hint: '· 画布逻辑宽度 1200px，高度随消息自动生成。<br />· 头像读取同目录图片文件（avatar-Judy.png / avatar-Panam.png），替换同名文件即可换图。<br />· 双击打开时头像可正常显示；导出 PNG 会被浏览器安全限制拦截，按弹窗提示选择一次图片文件即可自动导出，或用本地服务器（python -m http.server）。<br />· 字体：中英可切换。英文页头/用户名使用 Blender Pro（外部引用同目录 Blender-Pro-Book.ttf，缺失时回退 Rajdhani）；暗红细字使用 Play；消息体西文使用 Rajdhani（英文字重 500；Google Fonts，需联网，离线回退系统字体）。<br />· 所有尺寸、间距、颜色参数均可改：见脚本顶部 CONFIG / PALETTE。',
+      },
+      en: {
+        appTitle: 'Cyberpunk Chat Log Generator',
+        docTitle: 'Cyberpunk Chat Log Generator',
+        userName: 'User name',
+        userNamePh: 'Enter a user name',
+        defaultUserName: 'JUDY ALVAREZ',
+        avatarLabel: 'Avatar image',
+        avatarJudy: 'avatar-Judy.png (default)',
+        avatarPanam: 'avatar-Panam.png',
+        avatarCustom: 'Upload custom image…',
+        avatarNone: 'No image',
+        avatarCustomUploaded: 'Custom image (uploaded)',
+        msgListLabel: 'Messages (Other = blue · Me = green)',
+        addMsg: '+ Add message',
+        scale: 'Export scale',
+        exportBtn: 'Export PNG',
+        sideOther: 'Other · Blue',
+        sideMe: 'Me · Green',
+        delTitle: 'Delete',
+        msgPh: 'Type a message…',
+        canvasPlaceholder: '(Enter chat messages)',
+        hint: '· Canvas logical width 1200px; height grows with the messages.<br />· Avatar loads from image files in the same folder (avatar-Judy.png / avatar-Panam.png); replace the file to change it.<br />· When opened by double-click, the avatar displays fine, but PNG export may be blocked by browser security. Follow the dialog to pick the image file once and export resumes automatically, or serve locally (python -m http.server).<br />· Fonts: switchable zh/en. EN header/user name use Blender Pro (external file Blender-Pro-Book.ttf in this folder; falls back to Rajdhani if missing); dark-red meta text uses Play; Western letters in the message body use Rajdhani (weight 500 in English; Google Fonts — needs network, falls back to system fonts offline).<br />· All sizes, spacing and colors are configurable: see CONFIG / PALETTE at the top of the script.',
+      },
+    };
+
+    // 应用语言：更新全部界面文案 / html lang / 标题 / 语言按钮，持久化并重绘画布
+    function applyLang(lang) {
+      if (lang !== 'zh' && lang !== 'en') lang = 'zh';
+      const prevLang = LANG;
+      const inUser = $('inUser');
+      // 仅当当前用户名仍等于旧语言默认名时才随语言互换；空值/自定义名称保持原样
+      const wasDefault = inUser.value === L10N[prevLang].defaultUserName;
+      LANG = lang;
+      document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+      document.title = L10N[lang].docTitle;
+      document.querySelectorAll('[data-i18n]').forEach((el) => {
+        const key = el.dataset.i18n;
+        if (L10N[lang][key] != null) el.textContent = L10N[lang][key];
+      });
+      document.querySelectorAll('[data-i18n-html]').forEach((el) => {
+        const key = el.dataset.i18nHtml;
+        if (L10N[lang][key] != null) el.innerHTML = L10N[lang][key];
+      });
+      document.querySelectorAll('[data-i18n-ph]').forEach((el) => {
+        const key = el.dataset.i18nPh;
+        if (L10N[lang][key] != null) el.placeholder = L10N[lang][key];
+      });
+      document.querySelectorAll('[data-i18n-title]').forEach((el) => {
+        const key = el.dataset.i18nTitle;
+        if (L10N[lang][key] != null) el.title = L10N[lang][key];
+      });
+      if (wasDefault) inUser.value = L10N[lang].defaultUserName;
+      // 默认聊天记录：仅把仍是旧语言默认原文的消息替换为新语言默认文案，用户改过的消息保持原样
+      const pd = DEFAULT_MESSAGES[prevLang], nd = DEFAULT_MESSAGES[lang];
+      messages.forEach((m) => {
+        const i = pd.findIndex((d) => d.text === m.text && d.side === m.side);
+        if (i >= 0 && nd[i]) { m.side = nd[i].side; m.text = nd[i].text; }
+      });
+      document.querySelectorAll('.lang-btn').forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.lang === lang);
+      });
+      try { localStorage.setItem('cm-lang', lang); } catch (e) { /* file:// 下可能抛错 */ }
+      rebuildRows();
+      schedule();
+    }
+    document.querySelectorAll('.lang-btn').forEach((btn) => {
+      btn.onclick = () => applyLang(btn.dataset.lang);
+    });
+
+    // 事件委托：按 data-id 定位消息对象，避免行与 messages 数组失联后失效
+    msgListEl.addEventListener('input', (e) => {
+      const ta = e.target.closest('.text');
+      const row = e.target.closest('.msg');
+      if (!ta || !row) return;
+      const m = findMsg(row);
+      if (m) m.text = ta.value;
+      schedule();
+    });
+    msgListEl.addEventListener('change', (e) => {
+      const sel = e.target.closest('.side');
+      const row = e.target.closest('.msg');
+      if (!sel || !row) return;
+      const m = findMsg(row);
+      if (m) m.side = sel.value;
+      schedule();
+    });
+    msgListEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('.del');
+      const row = e.target.closest('.msg');
+      if (!btn || !row) return;
+      row.remove();
+      const m = findMsg(row);
+      if (m) messages.splice(messages.indexOf(m), 1);
+      schedule();
+    });
+
+    function findMsg(row) {
+      const id = Number(row.dataset.id);
+      return messages.find((m) => m.id === id);
+    }
+
+    function addRow(m) {
+      m = m || { side: 'other', text: '' };
+      if (m.id == null) m.id = ++msgSeq;
+      const row = document.createElement('div');
+      row.className = 'msg';
+      row.dataset.id = String(m.id);
+      row.innerHTML = '<div class="head">' +
+        '<select class="side">' +
+        '<option value="other">' + L10N[LANG].sideOther + '</option>' +
+        '<option value="me">' + L10N[LANG].sideMe + '</option>' +
+        '</select>' +
+        '<button class="del" title="' + L10N[LANG].delTitle + '">✕</button>' +
+        '</div>' +
+        '<textarea class="text" rows="3" placeholder="' + L10N[LANG].msgPh + '"></textarea>';
+      row.querySelector('.side').value = m.side;
+      row.querySelector('.text').value = m.text;
+      msgListEl.appendChild(row);
+    }
+    // 语言切换后重建全部消息行（事件委托基于 row.dataset.id，重建不影响交互）
+    function rebuildRows() {
+      msgListEl.innerHTML = '';
+      messages.forEach(addRow);
+    }
+    let renderTimer = null;
+    let renderPending = false;   // 是否有防抖中的渲染尚未执行（导出前按需补渲染用）
+    function schedule() {
+      clearTimeout(renderTimer);
+      renderPending = true;
+      renderTimer = setTimeout(render, 250);
+    }
+
+    $('btnAdd').onclick = () => {
+      const m = { side: 'other', text: '' };
+      messages.push(m);
+      addRow(m);
+      schedule();
+    };
+
+    $('inUser').oninput = schedule;
+    $('selScale').onchange = schedule;
+
+    // 说明：Safari 会拦截 select 的 change 事件中程序化打开的文件选择器（Chrome/Firefox 不受限），
+    // 故上传入口改为下方 <label for="fileAvatar">（原生手势，全浏览器可用）；select 仅负责选择/切换头像来源
+    selAvatar.onchange = schedule;
+    let pendingExport = false;   // 导出被拦截后，等待用户选图并自动续接导出
+
+    function exportPng() {
+      // 用 toBlob + object URL 下载（兼容性优于 data URL，且不受 data URL 大小限制）；
+      // 画布被污染时 toBlob 会同步抛 SecurityError，由调用方捕获进入救援流程
+      const save = (url, revoke) => {
+        const a = document.createElement('a');
+        a.download = 'chat-record.png';
+        a.href = url;
+        document.body.appendChild(a);   // Safari 需要锚点在文档中才会触发下载
+        a.click();
+        a.remove();
+        if (revoke) setTimeout(() => URL.revokeObjectURL(url), 3000);
+      };
+      if (!cv.toBlob) { save(cv.toDataURL('image/png'), false); return; }
+      cv.toBlob((blob) => {
+        if (blob) save(URL.createObjectURL(blob), true);
+        else save(cv.toDataURL('image/png'), false);
+      }, 'image/png');
+    }
+
+    // 上传成功后：在「不使用图片」前插入「自定义图片（已上传）」选项并选中，
+    // 之后可在下拉里随时切回（选项带 data-i18n，切换语言时文案自动更新）
+    function ensureCustomOption() {
+      let op = selAvatar.querySelector('option[value="custom"]');
+      if (!op) {
+        op = document.createElement('option');
+        op.value = 'custom';
+        op.dataset.i18n = 'avatarCustomUploaded';
+        op.textContent = L10N[LANG].avatarCustomUploaded;   // 创建时立即填文案（后续切语言由 data-i18n 更新）
+        selAvatar.insertBefore(op, selAvatar.lastElementChild);
+      }
+      return op;
+    }
+    fileInput.addEventListener('cancel', () => { pendingExport = false; });
+    fileInput.onchange = () => {
+      const f = fileInput.files[0];
+      if (!f) { pendingExport = false; return; }   // 取消选择：保持当前头像不变
+      const fr = new FileReader();
+      fr.onload = async () => {
+        customAvatar = fr.result;   // data URL，不会污染画布
+        customImageSource = null;
+        ensureCustomOption();
+        selAvatar.value = 'custom';
+        if (pendingExport) {
+          pendingExport = false;
+          freshCanvas();            // Safari：脏画布无法恢复，换新画布再渲染
+          await render();
+          try { exportPng(); }
+          catch (e) { alert('自动导出失败。请改用本地服务器方式：在本目录运行 python -m http.server 后用 http 地址打开。'); }
+        } else {
+          freshCanvas();            // 改用上传图片时同样换新画布（否则 Safari 下残留污染会导致导出失败）
+          await render();
+        }
+      };
+      fr.readAsDataURL(f);
+    };
+    $('btnExport').onclick = async () => {
+      // 尽量不打断用户手势（Safari 下弹窗选图需要在点击手势内触发）：
+      // 仅当有防抖渲染未执行时才补渲染，否则直接用当前画布导出
+      if (renderPending) await render();
+      try {
+        exportPng();
+      } catch (e) {
+        // file:// 双击打开时，同目录图片会污染画布导致浏览器禁止导出；
+        // 引导用户改从本地选择同一张图片（FileReader → dataURL 不污染），选完自动导出
+        pendingExport = true;
+        alert('双击打开时浏览器禁止导出含本地图片的画布。\n\n' +
+          '按「确定」后请在文件选择框中选择本目录的头像图片（如 avatar-Judy.png），选好后会自动重新导出。\n\n' +
+          '若文件选择框没有弹出：请用「上传自定义图片」入口选择头像后再导出；或在本目录运行 python -m http.server 用 http 地址打开。');
+        fileInput.click();
+      }
+    };
+
+    /* 初始化：先立即渲染一次（字体慢/被墙也不会白屏），字体就绪后再按真实字形重渲染 */
+    let initialLang = 'zh';
+    try {
+      const stored = localStorage.getItem('cm-lang');
+      if (stored === 'zh' || stored === 'en') initialLang = stored;
+    } catch (e) { /* file:// 下可能抛错，忽略无效值 */ }
+    applyLang(initialLang);   // applyLang 内部已重建消息行
+    render();
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(render);
+    }
+  </script>
+</body>
+
+</html>

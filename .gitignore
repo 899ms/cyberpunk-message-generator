@@ -1,0 +1,11 @@
+# macOS 系统文件
+.DS_Store
+
+# 备份压缩包
+*.zip
+
+# Blender Pro 为商用字体，默认不随仓库分发；如需上传请删除下一行
+Blender-Pro-Book.ttf
+
+# 工具生成目录
+.omo/
