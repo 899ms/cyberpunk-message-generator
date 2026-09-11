@@ -6,3 +6,4 @@
 
 # 工具生成目录
 .omo/
+.playwright-mcp/

@@ -299,7 +299,7 @@
         · 画布逻辑宽度 1200px，高度随消息自动生成。<br />
         · 头像读取同目录图片文件（avatar-Judy.png / avatar-Panam.png），替换同名文件即可换图。<br />
         · 双击打开时头像可正常显示；导出 PNG 会被浏览器安全限制拦截，按弹窗提示选择一次图片文件即可自动导出，或用本地服务器（python -m http.server）。<br />
-        · 字体：中英可切换。英文页头/用户名使用 Blender Pro（外部引用同目录 Blender-Pro-Book.ttf，缺失时回退 Rajdhani）；暗红细字使用 Play；消息体西文使用 Rajdhani（英文字重 500；Google Fonts，需联网，离线回退系统字体）。<br />
+        · 字体：中英可切换。英文页头/用户名使用 Blender Pro（外部引用同目录 Blender-Pro-Book.ttf，缺失时回退 Rajdhani）；暗红细字使用 Play；消息体西文使用 Rajdhani（字重 500；Google Fonts，需联网，离线回退系统字体）。<br />
         · 所有尺寸、间距、颜色参数均可改：见脚本顶部 CONFIG / PALETTE。
       </p>
     </aside>
@@ -359,7 +359,7 @@
       msgStartGap: 42,             // 消息区起始 y = 青色下划线下缘 + 此偏移
       msgIndent: 30,               // 消息区（气泡区左起点 x = 消息 icon 左缘 + 此缩进（icon x = marginLeft+hdrLinePadX=170 → 200）
       msgFontSize: 28,
-      msgWeightEn: 500,            // 英文消息文字字重（Rajdhani 真实档位：300/400/500/600/700，已全部加载；中文固定 400）
+      msgWeight: 500,              // 西文字重（Rajdhani；中英文通用）—— 中文/CJK 固定常规 400，见 splitRuns
       msgLineHeight: 42,           // 多行时行与行基线间距
       bubblePadX: 16,
       bubblePadY: 14,              // 单行文字上下留白（气泡最小高度 = 字号字形高度 + 2×此值）
@@ -457,8 +457,38 @@
     // 画布页头字号：中英文可分别配置（英文默认与中文相同，可单独调整）
     function titleSize() { return LANG === 'en' ? CONFIG.hdrTitleSizeEn : CONFIG.hdrTitleSize; }
     function userNameSize() { return LANG === 'en' ? CONFIG.hdrUserNameSizeEn : CONFIG.hdrUserNameSize; }
-    // 消息文字字重：英文按 msgWeightEn（当前 500 Medium），中文保持常规
-    function msgWeight() { return LANG === 'en' ? CONFIG.msgWeightEn : 400; }
+    // 消息文字分段：西文（ASCII + Latin-1，即 Rajdhani 覆盖范围）与其它字符（中文等）分开；
+    // canvas 一个字体串只有一种字重，故按段分别测量/绘制——西文用 msgWeight，中文等固定常规 400
+    function msgWeight() { return CONFIG.msgWeight; }
+    function splitRuns(text) {
+      const runs = [];
+      let cur = '', curWestern = null;
+      for (const ch of String(text)) {
+        const western = ch.charCodeAt(0) <= 0xff;
+        if (cur && western !== curWestern) { runs.push({ text: cur, western: curWestern }); cur = ''; }
+        cur += ch; curWestern = western;
+      }
+      if (cur) runs.push({ text: cur, western: curWestern });
+      return runs;
+    }
+    // 按分段规则测量一行宽度（与绘制保持一致）
+    function measureStyledLine(line) {
+      let w = 0;
+      for (const run of splitRuns(line)) {
+        setFont(CONFIG.msgFontSize, run.western ? msgWeight() : 400, CONFIG.fontFamily);
+        w += ctx.measureText(run.text).width;
+      }
+      return w;
+    }
+    // 按分段规则绘制一行：西文用 msgWeight（Rajdhani），中文等保持常规 400
+    function drawStyledLine(line, x, baseY) {
+      let cx = x;
+      for (const run of splitRuns(line)) {
+        setFont(CONFIG.msgFontSize, run.western ? msgWeight() : 400, CONFIG.fontFamily);
+        ctx.fillText(run.text, cx, baseY);
+        cx += ctx.measureText(run.text).width;
+      }
+    }
     // 合成加粗：canvas 字体字重对 CJK 常不生效（实测 400/700 完全一样），
     // 这里用多次偏移绘制让字重真实变粗。weight>400 时加粗，≤400 则正常单次绘制。
     function drawWeightText(text, x, baseY, weight) {
@@ -516,7 +546,7 @@
         const segs = [];
         let cur = '';
         for (const ch of word) {
-          if (cur && ctx.measureText(cur + ch).width > maxW) { segs.push(cur); cur = ch; }
+          if (cur && measureStyledLine(cur + ch) > maxW) { segs.push(cur); cur = ch; }
           else { cur += ch; }
         }
         if (cur) segs.push(cur);
@@ -529,9 +559,9 @@
         let cur = '';
         for (const tk of tokens) {
           if (/^\s+$/.test(tk)) { if (cur) cur += tk; continue; }   // 行首空格忽略
-          if (ctx.measureText(cur + tk).width > maxW) {
+          if (measureStyledLine(cur + tk) > maxW) {
             if (cur) { out.push(cur.replace(/\s+$/, '')); cur = ''; }
-            if (ctx.measureText(tk).width > maxW) {
+            if (measureStyledLine(tk) > maxW) {
               const segs = splitLongWord(tk);
               for (let i = 0; i < segs.length - 1; i++) out.push(segs[i]);
               cur = segs[segs.length - 1] || '';
@@ -627,7 +657,7 @@
       const cw = CONFIG.width - msgArea().x - CONFIG.marginRight;
       const maxW = Math.floor(cw * CONFIG.maxBubbleRatio);
       const inner = maxW - CONFIG.bubblePadX * 2;
-      setFont(CONFIG.msgFontSize, msgWeight(), CONFIG.fontFamily);
+      setFont(CONFIG.msgFontSize, 400, CONFIG.fontFamily);
 
       const items = [];
       // 实测字形高度（有 measureText 指标则优先），保证单行气泡 = 字体高度 + 上下边距
@@ -638,7 +668,7 @@
       for (const m of msgs) {
         const lines = wrapLines(m.text, inner);
         let w = 0;
-        for (const ln of lines) w = Math.max(w, ctx.measureText(ln).width);
+        for (const ln of lines) w = Math.max(w, measureStyledLine(ln));
         const bw = Math.min(maxW, Math.max(w + CONFIG.bubblePadX * 2, CONFIG.minBubbleW));
         const bh = CONFIG.bubblePadY * 2 + tAsc + tDesc + Math.max(0, lines.length - 1) * CONFIG.msgLineHeight;
         items.push({ side: m.side, lines, y: cursor, w: bw, h: bh, ascent: tAsc });
@@ -646,8 +676,7 @@
       }
       if (!items.length) {
         const tip = L10N[LANG].canvasPlaceholder;
-        setFont(CONFIG.msgFontSize, msgWeight(), CONFIG.fontFamily);
-        const tw = Math.max(CONFIG.minBubbleW, ctx.measureText(tip).width + CONFIG.bubblePadX * 2);
+        const tw = Math.max(CONFIG.minBubbleW, measureStyledLine(tip) + CONFIG.bubblePadX * 2);
         const bh = CONFIG.bubblePadY * 2 + tAsc + tDesc;
         items.push({ side: 'other', lines: [tip], y: msgArea().y, w: tw, h: bh, ascent: tAsc, placeholder: true });
         cursor = msgArea().y + items[0].h + CONFIG.tailDrop + CONFIG.gapBetween;
@@ -780,7 +809,6 @@
     function drawMessages(laid) {
       const xOther = msgArea().x;
       const xMe = CONFIG.width - CONFIG.marginRight;
-      setFont(CONFIG.msgFontSize, msgWeight(), CONFIG.fontFamily);
 
       for (const it of laid.items) {
         const isMe = it.side === 'me';
@@ -795,9 +823,8 @@
         ctx.fill();
         ctx.stroke();
         ctx.fillStyle = it.placeholder ? PALETTE.placeholder : (isMe ? PALETTE.bubbleTextMe : PALETTE.bubbleText);
-        setFont(CONFIG.msgFontSize, msgWeight(), CONFIG.fontFamily);
         const base = it.y + CONFIG.bubblePadY + it.ascent;
-        it.lines.forEach((ln, i) => ctx.fillText(ln, x + CONFIG.bubblePadX, base + i * CONFIG.msgLineHeight));
+        it.lines.forEach((ln, i) => drawStyledLine(ln, x + CONFIG.bubblePadX, base + i * CONFIG.msgLineHeight));
         ctx.restore();
       }
     }
@@ -826,7 +853,7 @@
               CONFIG.fontMeta,
               CONFIG.fontHeaderZh,
               CONFIG.fontHeaderEn,
-            ].map((f) => document.fonts.load('16px ' + f).catch(() => [])).concat([document.fonts.load(CONFIG.msgWeightEn + ' 16px ' + CONFIG.fontFamily).catch(() => [])])),   // 单个字体失败不阻断其余加载；末尾追加英文消息字重预加载
+            ].map((f) => document.fonts.load('16px ' + f).catch(() => [])).concat([document.fonts.load(CONFIG.msgWeight + ' 16px ' + CONFIG.fontFamily).catch(() => [])])),   // 单个字体失败不阻断其余加载；末尾追加消息字重预加载
             new Promise((res) => setTimeout(res, 1500)),   // 字体请求挂起时最多等 1.5s，避免卡住渲染
           ]);
         } catch (e) { /* 字体不可用时静默回退 */ }
@@ -874,7 +901,7 @@
         delTitle: '删除',
         msgPh: '输入消息内容…',
         canvasPlaceholder: '（请输入聊天消息）',
-        hint: '· 画布逻辑宽度 1200px，高度随消息自动生成。<br />· 头像读取同目录图片文件（avatar-Judy.png / avatar-Panam.png），替换同名文件即可换图。<br />· 双击打开时头像可正常显示；导出 PNG 会被浏览器安全限制拦截，按弹窗提示选择一次图片文件即可自动导出，或用本地服务器（python -m http.server）。<br />· 字体：中英可切换。英文页头/用户名使用 Blender Pro（外部引用同目录 Blender-Pro-Book.ttf，缺失时回退 Rajdhani）；暗红细字使用 Play；消息体西文使用 Rajdhani（英文字重 500；Google Fonts，需联网，离线回退系统字体）。<br />· 所有尺寸、间距、颜色参数均可改：见脚本顶部 CONFIG / PALETTE。',
+        hint: '· 画布逻辑宽度 1200px，高度随消息自动生成。<br />· 头像读取同目录图片文件（avatar-Judy.png / avatar-Panam.png），替换同名文件即可换图。<br />· 双击打开时头像可正常显示；导出 PNG 会被浏览器安全限制拦截，按弹窗提示选择一次图片文件即可自动导出，或用本地服务器（python -m http.server）。<br />· 字体：中英可切换。英文页头/用户名使用 Blender Pro（外部引用同目录 Blender-Pro-Book.ttf，缺失时回退 Rajdhani）；暗红细字使用 Play；消息体西文使用 Rajdhani（字重 500；Google Fonts，需联网，离线回退系统字体）。<br />· 所有尺寸、间距、颜色参数均可改：见脚本顶部 CONFIG / PALETTE。',
       },
       en: {
         appTitle: 'Cyberpunk Chat Log Generator',
@@ -897,7 +924,7 @@
         delTitle: 'Delete',
         msgPh: 'Type a message…',
         canvasPlaceholder: '(Enter chat messages)',
-        hint: '· Canvas logical width 1200px; height grows with the messages.<br />· Avatar loads from image files in the same folder (avatar-Judy.png / avatar-Panam.png); replace the file to change it.<br />· When opened by double-click, the avatar displays fine, but PNG export may be blocked by browser security. Follow the dialog to pick the image file once and export resumes automatically, or serve locally (python -m http.server).<br />· Fonts: switchable zh/en. EN header/user name use Blender Pro (external file Blender-Pro-Book.ttf in this folder; falls back to Rajdhani if missing); dark-red meta text uses Play; Western letters in the message body use Rajdhani (weight 500 in English; Google Fonts — needs network, falls back to system fonts offline).<br />· All sizes, spacing and colors are configurable: see CONFIG / PALETTE at the top of the script.',
+        hint: '· Canvas logical width 1200px; height grows with the messages.<br />· Avatar loads from image files in the same folder (avatar-Judy.png / avatar-Panam.png); replace the file to change it.<br />· When opened by double-click, the avatar displays fine, but PNG export may be blocked by browser security. Follow the dialog to pick the image file once and export resumes automatically, or serve locally (python -m http.server).<br />· Fonts: switchable zh/en. EN header/user name use Blender Pro (external file Blender-Pro-Book.ttf in this folder; falls back to Rajdhani if missing); dark-red meta text uses Play; Western letters in the message body use Rajdhani (weight 500; Google Fonts — needs network, falls back to system fonts offline).<br />· All sizes, spacing and colors are configurable: see CONFIG / PALETTE at the top of the script.',
       },
     };
 
