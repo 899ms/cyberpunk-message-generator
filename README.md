@@ -105,10 +105,10 @@ All adjustable parameters are centralized in `CONFIG` and `PALETTE` at the top o
 ## 字体说明 / Fonts
 
 - **Rajdhani / Play**：通过 Google Fonts 在线加载，需要联网；离线或加载失败时自动回退系统字体
-- **Blender Pro**：商用字体。
+- **Blender Pro**：商用字体，随仓库提供（仅限本非商业粉丝项目使用，商业用途需自行获取授权）
 
 - **Rajdhani / Play**: loaded online from Google Fonts — an internet connection is required; falls back to system fonts when offline or if loading fails
-- **Blender Pro**: a commercial font.
+- **Blender Pro**: a commercial font, bundled with the repository for non-commercial fan use only (commercial use requires obtaining a license)
 
 ## 已知限制 / Known Limitations
 
@@ -125,3 +125,9 @@ All adjustable parameters are centralized in `CONFIG` and `PALETTE` at the top o
 本项目基于 **MIT License** 开源。
 
 This project is open-sourced under the **MIT License**.
+
+## 版权与免责声明 / Copyright & Disclaimer
+
+本项目为粉丝自制的**非商业**作品。由于本项目包含商用字体《Blender Pro》以及《赛博朋克 2077》相关的设计元素（游戏及其素材的版权归 CD Projekt Red 所有，字体版权归其权利人所有），**禁止任何形式的商业使用**；如需商业用途，请先向相关权利方获取授权。MIT 开源协议仅适用于本项目的代码部分，不构成对上述字体与游戏素材的授权。
+
+This project is a **non-commercial** fan-made work. As it includes the commercial font "Blender Pro" and design elements related to *Cyberpunk 2077* (the game and its assets are copyright of CD Projekt Red; the font is copyright of its respective rights holders), **any commercial use is prohibited**. For commercial use, please obtain proper licenses from the rights holders first. The MIT License applies only to the source code of this project and does not grant any rights to the aforementioned font or game assets.
