@@ -7,3 +7,6 @@
 # 工具生成目录
 .omo/
 .playwright-mcp/
+
+# 测试截图
+qa-*.png
