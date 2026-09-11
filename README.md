@@ -26,12 +26,12 @@ Below are the UI and exported results in Chinese / English (left: Chinese, right
 
 本项目由两位创作者共同完成：
 
-- **设计资源与默认头像**：@Hijimmy —— 提供了整体设计资源、页面布局方案、颜色以及默认头像图片 `avatar-Judy.png`、`avatar-Panam.png`。这位太太持续在《赛博朋克 2077》同人圈产出作品，感谢！
+- **设计资源与默认头像**：微博：hijimmmy / LOFTER：Hijimmy —— 提供了整体设计资源、页面布局方案、颜色以及默认头像图片 `avatar-Judy.png`、`avatar-Panam.png`。这位太太持续在《赛博朋克 2077》同人圈产出作品，感谢！
 - **代码实现**：本人@daming98
 
 This project is a joint effort by two creators:
 
-- **Design assets & default avatars**: @Hijimmy — provided the overall design assets, page layout, colors, and the default avatar images `avatar-Judy.png` and `avatar-Panam.png`. She keeps creating works in the *Cyberpunk 2077* fan community. Thank you!
+- **Design assets & default avatars**: Weibo: hijimmmy / LOFTER: Hijimmy — provided the overall design assets, page layout, colors, and the default avatar images `avatar-Judy.png` and `avatar-Panam.png`. She keeps creating works in the *Cyberpunk 2077* fan community. Thank you!
 - **Code implementation**: myself
 
 ## 主要特点 / Features
