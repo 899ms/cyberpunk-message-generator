@@ -4,6 +4,8 @@
 
 A pure front-end, single-file web tool that generates chat-log images faithfully styled after the current in-game SMS interface of *Cyberpunk 2077*. It supports Chinese/English switching and exports high-resolution PNG images.
 
+**在线试用 / Live Demo**: https://daming98.github.io/cyberpunk-message-generator/
+
 ## 预览 / Preview
 
 以下为中文 / 英文两种语言下的界面与导出效果（左：中文，右：英文）。
