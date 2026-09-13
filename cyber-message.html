@@ -250,6 +250,64 @@
       margin-top: 12px;
       line-height: 1.8
     }
+
+    .save-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      padding: 16px;
+      background: rgba(3, 3, 8, .94);
+    }
+
+    .save-overlay img {
+      max-width: 100%;
+      max-height: calc(100vh - 110px);
+      object-fit: contain;
+    }
+
+    .save-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: none;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      color: #8fa3bd;
+      font-size: 16px;
+      line-height: 1;
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+
+    .save-hint {
+      margin: 0;
+      color: var(--cyan);
+      font-size: 13px;
+      letter-spacing: 1px;
+      text-align: center;
+    }
+
+    .save-tip {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--cyan);
+      border-radius: 4px;
+      background: #0b0b16;
+      color: #d8e6f5;
+      font-size: 14px;
+      line-height: 1.75;
+      letter-spacing: 0.5px;
+    }
+
+    .save-tip b {
+      color: var(--cyan);
+    }
   </style>
 </head>
 
@@ -294,17 +352,17 @@
         <div id="msgList"></div>
         <button id="btnAdd" class="btn" data-i18n="addMsg">＋ 添加消息</button>
       </div>
-      <div class="field env">
-        <div style="flex:0 0 96px">
-          <label data-i18n="scale">导出倍率</label>
-          <select id="selScale">
-            <option value="1">1x</option>
-            <option value="2" selected>2x</option>
-            <option value="3">3x</option>
-          </select>
-        </div>
-        <button id="btnExport" class="btn primary" data-i18n="exportBtn">导出 PNG</button>
+      <div class="field">
+        <label data-i18n="scale">导出倍率</label>
+        <select id="selScale">
+          <option value="1">1x</option>
+          <option value="2" selected>2x</option>
+          <option value="3">3x</option>
+        </select>
       </div>
+      <button id="btnExport" class="btn primary" data-i18n="exportBtn">导出 PNG（PC 端点这个）</button>
+      <button id="btnSave" class="btn" data-i18n="saveBtn" style="display:none">保存到相册（移动端点这个）</button>
+      <p id="saveTip" class="save-tip" data-i18n-html="saveTip" style="display:none">提示：<b>不要直接分享到微信</b>——微信会压缩图片、导致色彩不准。正确做法：先「保存到相册」，再在微信里从相册选图、<b>勾选「原图」</b>发送。</p>
       <p class="hint" data-i18n-html="hint">
         · 画布逻辑宽度 1200px，高度随消息自动生成。<br />
         · 头像读取同目录图片文件（可在下拉框选择），替换同名文件即可换图。<br />
@@ -316,6 +374,13 @@
     <main class="stage">
       <canvas id="cv"></canvas>
     </main>
+  </div>
+
+  <!-- 存相册提示层：移动端「保存到相册」后长按图片存入系统相册（不经分享面板，避免 App 二次压缩） -->
+  <div id="saveOverlay" class="save-overlay" style="display:none">
+    <button id="saveClose" class="save-close" type="button" aria-label="Close">✕</button>
+    <img id="saveImg" alt="chat-record" />
+    <p class="save-hint" data-i18n="saveHint">长按图片 →「存储到照片」（iOS）/「保存图片」（Android）</p>
   </div>
 
   <script> "use strict";
@@ -922,13 +987,16 @@
         msgListLabel: '消息列表（对方=蓝色 · 我方=绿色）',
         addMsg: '＋ 添加消息',
         scale: '导出倍率',
-        exportBtn: '导出 PNG',
+        exportBtn: '导出 PNG（PC 端点这个）',
+        saveBtn: '保存到相册（移动端点这个）',
+        saveHint: '长按图片 →「存储到照片」（iOS）/「保存图片」（Android）',
+        saveTip: '提示：<b>不要直接分享到微信</b>——微信会压缩图片、导致色彩不准。正确做法：先「保存到相册」，再在微信里从相册选图、<b>勾选「原图」</b>发送。',
         sideOther: '对方 · 蓝',
         sideMe: '我方 · 绿',
         delTitle: '删除',
         msgPh: '输入消息内容…',
         canvasPlaceholder: '（请输入聊天消息）',
-        hint: '· 画布逻辑宽度 1200px，高度随消息自动生成。<br />· 头像读取同目录图片文件（可在下拉框选择），替换同名文件即可换图。<br />· 双击打开时头像可正常显示；导出 PNG 会被浏览器安全限制拦截，按弹窗提示选择一次图片文件即可自动导出，或用本地服务器（python -m http.server）。<br />· 字体：中英可切换。英文页头/用户名使用 Blender Pro（外部引用同目录 Blender-Pro-Book.ttf，缺失时回退 Rajdhani）；暗红细字使用 Play；消息体西文使用 Rajdhani（字重 600；Google Fonts，需联网，离线回退系统字体）。<br />· 所有尺寸、间距、颜色参数均可改：见脚本顶部 CONFIG / PALETTE。',
+        hint: '· 画布逻辑宽度 1200px，高度随消息自动生成。<br />· 头像读取同目录图片文件（可在下拉框选择），替换同名文件即可换图。<br />· 双击打开时头像可正常显示；导出 PNG 会被浏览器安全限制拦截，按弹窗提示选择一次图片文件即可自动导出，或用本地服务器（python -m http.server）。<br />· 字体：中英可切换。英文页头/用户名使用 Blender Pro（外部引用同目录 Blender-Pro-Book.ttf，缺失时回退 Rajdhani）；暗红细字使用 Play；消息体西文使用 Rajdhani（字重 600；Google Fonts，需联网，离线回退系统字体）。<br />· 手机端点「保存到相册」，长按图片选择「存储到照片」存入相册；之后从相册转发（微信勾选「原图」）可避免聊天软件二次压缩。<br />· 所有尺寸、间距、颜色参数均可改：见脚本顶部 CONFIG / PALETTE。',
       },
       en: {
         appTitle: 'Cyberpunk Chat Log Generator',
@@ -945,13 +1013,16 @@
         msgListLabel: 'Messages (Other = blue · Me = green)',
         addMsg: '+ Add message',
         scale: 'Export scale',
-        exportBtn: 'Export PNG',
+        exportBtn: 'Export PNG (use on desktop)',
+        saveBtn: 'Save to Photos (use on mobile)',
+        saveHint: 'Press and hold the image → "Save to Photos" (iOS) / "Download image" (Android)',
+        saveTip: 'Tip: <b>do not share directly to WeChat</b> — it recompresses images and shifts colors. Instead: tap "Save to Photos" first, then pick the image from your album in WeChat and <b>tick "Original"</b>.',
         sideOther: 'Other · Blue',
         sideMe: 'Me · Green',
         delTitle: 'Delete',
         msgPh: 'Type a message…',
         canvasPlaceholder: '(Enter chat messages)',
-        hint: '· Canvas logical width 1200px; height grows with the messages.<br />· Avatar images load from files in the same folder (selectable in the dropdown); replace the file to change it.<br />· When opened by double-click, the avatar displays fine, but PNG export may be blocked by browser security. Follow the dialog to pick the image file once and export resumes automatically, or serve locally (python -m http.server).<br />· Fonts: switchable zh/en. EN header/user name use Blender Pro (external file Blender-Pro-Book.ttf in this folder; falls back to Rajdhani if missing); dark-red meta text uses Play; Western letters in the message body use Rajdhani (weight 600; Google Fonts — needs network, falls back to system fonts offline).<br />· All sizes, spacing and colors are configurable: see CONFIG / PALETTE at the top of the script.',
+        hint: '· Canvas logical width 1200px; height grows with the messages.<br />· Avatar images load from files in the same folder (selectable in the dropdown); replace the file to change it.<br />· When opened by double-click, the avatar displays fine, but PNG export may be blocked by browser security. Follow the dialog to pick the image file once and export resumes automatically, or serve locally (python -m http.server).<br />· Fonts: switchable zh/en. EN header/user name use Blender Pro (external file Blender-Pro-Book.ttf in this folder; falls back to Rajdhani if missing); dark-red meta text uses Play; Western letters in the message body use Rajdhani (weight 600; Google Fonts — needs network, falls back to system fonts offline).<br />· On mobile, tap "Save to Photos" and press-and-hold the image to store it in your photo library; then forward from the album (tick "Original" in WeChat) to avoid messaging-app compression.<br />· All sizes, spacing and colors are configurable: see CONFIG / PALETTE at the top of the script.',
       },
     };
 
@@ -1132,7 +1203,8 @@
       };
       fr.readAsDataURL(f);
     };
-    $('btnExport').onclick = async () => {
+    // 导出（下载 PNG）
+    async function doExport() {
       // 尽量不打断用户手势（Safari 下弹窗选图需要在点击手势内触发）：
       // 仅当有防抖渲染未执行时才补渲染，否则直接用当前画布导出
       if (renderPending) await render();
@@ -1147,7 +1219,34 @@
           '若文件选择框没有弹出：请用「上传自定义图片」入口选择头像后再导出；或在本目录运行 python -m http.server 用 http 地址打开。');
         fileInput.click();
       }
+    }
+    $('btnExport').onclick = doExport;
+
+    // 保存到相册（移动端）：网页无法静默写入系统相册，这里展示全尺寸原图并提示长按存储——
+    // 长按 →「存储到照片」即进相册，不经分享面板（经面板发给微信仍会被压缩，故不走那条路）；
+    // 存进相册后再转发（微信勾选「原图」）即无损
+    async function openSaveOverlay() {
+      if (renderPending) await render();
+      let url;
+      try {
+        url = cv.toDataURL('image/png');
+      } catch (e) {
+        doExport();   // 画布被本地图片污染时无法生成预览 → 走下载救援流程
+        return;
+      }
+      $('saveImg').src = url;
+      $('saveOverlay').style.display = 'flex';
+    }
+    $('btnSave').onclick = openSaveOverlay;
+    $('saveClose').onclick = () => {
+      $('saveOverlay').style.display = 'none';
+      $('saveImg').removeAttribute('src');   // 释放内存（直接置空字符串会被解析为页面地址）
     };
+    // 仅在触屏设备上显示按钮和提示（手机 / 平板）；桌面保持原有 UI
+    if ((navigator.maxTouchPoints || 0) > 0) {
+      $('btnSave').style.display = 'block';
+      $('saveTip').style.display = 'block';
+    }
 
     /* 初始化：先立即渲染一次（字体慢/被墙也不会白屏），字体就绪后再按真实字形重渲染 */
     let initialLang = 'zh';

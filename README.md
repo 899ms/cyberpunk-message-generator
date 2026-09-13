@@ -43,7 +43,7 @@ This project is a joint effort by two creators:
   - 暗红细字：Play
   - 消息体西文：Rajdhani（西文 500 字重，中文保持常规）
 - **大量可配置字段**：脚本顶部 `CONFIG` / `PALETTE` 涵盖尺寸、间距、字号、字重、边距与颜色；中英文的字号、字重均可独立配置
-- **单文件、零依赖**：无需安装、无需构建，浏览器打开即用；导出支持 1x / 2x / 3x 倍率
+- **单文件、零依赖**：无需安装、无需构建，浏览器打开即用；导出支持 1x / 2x / 3x 倍率，手机端可点「保存到相册」并长按图片存入系统相册
 - **头像**：内置默认头像可选，也支持上传自定义图片
 - **兼容性**：已在 macOS 与 Windows 的 Chrome 上测试通过
 
@@ -54,7 +54,7 @@ This project is a joint effort by two creators:
   - Dark-red small text: Play
   - Western letters in message bubbles: Rajdhani (weight 500; CJK text stays regular)
 - **Extensive configurable fields**: `CONFIG` / `PALETTE` at the top of the script cover sizes, spacing, font sizes, weights, margins and colors; font sizes and weights can be configured independently for Chinese and English
-- **Single file, zero dependencies**: no installation or build needed — just open it in a browser; export supports 1x / 2x / 3x scale
+- **Single file, zero dependencies**: no installation or build needed — just open it in a browser; export supports 1x / 2x / 3x scale, and on mobile "Save to Photos" + press-and-hold stores the image straight to the photo library
 - **Avatars**: choose from the bundled default avatars, or upload your own image
 - **Compatibility**: tested on Chrome for macOS and Windows
 
@@ -98,8 +98,11 @@ The repository bundles 12 character avatars (all are `avatar-*.png` files in the
    - 更推荐用本地服务器打开（头像与导出不受浏览器本地安全限制）：在本目录运行 `python -m http.server`（macOS 可能需要 `python3 -m http.server`），然后访问 `http://localhost:8000/cyber-message.html`
 3. 在左侧面板填写用户名、选择头像、编辑消息列表（对方 = 蓝，我方 = 绿）
 4. 选择导出倍率，点击「导出 PNG」
+5. 手机端：点「保存到相册」，长按图片选择「存储到照片」存入系统相册；发微信时请在微信聊天里用「+ → 相册」选择该图并勾选「原图」发送
 
 > 直接双击（file://）打开时，导出含本地头像的 PNG 可能被浏览器安全策略拦截，按页面弹窗提示操作一次即可自动完成导出；或改用本地服务器方式。
+
+> **发微信的正确姿势**：不要直接分享给微信——即使先「导出到文件」、再从文件 App 分享到微信，图片同样会被微信压缩（转 JPG、缩小尺寸、颜色失真）。请先存入相册，再从微信里以「原图」发送。
 
 1. Download or clone this repository
 2. Open `cyber-message.html` in a browser:
@@ -107,8 +110,11 @@ The repository bundles 12 character avatars (all are `avatar-*.png` files in the
    - opening via a local server is recommended (avatars and export are not affected by browser local-security restrictions): run `python -m http.server` in this directory (on macOS you may need `python3 -m http.server`), then visit `http://localhost:8000/cyber-message.html`
 3. In the left panel, fill in the username, choose an avatar, and edit the message list (Other = blue, Me = green)
 4. Pick an export scale and click「导出 PNG」/「Export PNG」
+5. On mobile: tap "Save to Photos" and long-press the image to save it to your photo library; when sending it on WeChat, pick the image via "+ → Albums" inside the chat and tick "Original"
 
 > When opened by double-click (file://), exporting a PNG that includes a local avatar may be blocked by browser security policies. Follow the on-page dialog once and the export will complete automatically; or use a local server instead.
+
+> **Sending to WeChat the right way**: do not share the image directly to WeChat — even if you export it to Files first and share from the Files app, WeChat still recompresses it (JPG, downscaled, colors shifted). Always save it to the photo library first, then send it from WeChat with "Original" ticked.
 
 ## 自定义配置 / Configuration
 
@@ -165,10 +171,58 @@ Elements are connected through relative spacing parameters (e.g. `hdrCodeToIconG
 - 消息内容仅支持纯文字，暂不支持发送图片 / 表情包
 - 离线或 Google Fonts 不可用时，字体回退为系统字体，观感会与预期效果有差异，可以通过引用字体文件解决
 - 除 macOS / Windows 的 Chrome 外，其他浏览器与系统未做系统测试（欢迎反馈问题）
+- 通过聊天软件（如微信）转发导出的图片可能被二次压缩（转为 JPG、尺寸缩小），且没有明显提示；详见下方「踩坑记录」一节
 
 - Message content is text-only; images / stickers as messages are not supported yet
 - When offline or when Google Fonts is unavailable, fonts fall back to system fonts and the look may differ from the intended design; this can be solved by referencing local font files
 - Apart from Chrome on macOS / Windows, other browsers and systems have not been systematically tested (feedback is welcome)
+- Images forwarded through messaging apps (e.g. WeChat) may be recompressed (converted to JPG and downscaled) with no obvious warning; see the "Pitfall" section below
+
+## 踩坑记录：微信的图片压缩 / Pitfall: WeChat image compression
+
+给所有做「导出图片 → 分享」功能的开发者提个醒：**微信会在你看不到的地方压缩图片，而且没有任何提示**。
+
+同一张 2400px 的 PNG 导出图，实测对比：
+
+| | 原图（浏览器导出） | 经微信传输后 |
+| --- | --- | --- |
+| 格式 | PNG（无损） | JPG（有损） |
+| 尺寸 | 2400px 宽 | 1279px 宽（约缩一半） |
+| 青色下划线 | RGB(126, 226, 248) | RGB(154, 215, 233)（肉眼可见地发灰） |
+
+原因：微信把图转成了 JPG（色度抽样）并缩小了分辨率，渐变和细线最先遭殃。
+
+**最坑的一点**：在手机「文件」App 里选择「分享 → 微信」也会被压缩（同样转 JPG + 缩尺寸），而且**没有**「发送原图」的选项——本以为走「文件」就万无一失，结果照样中招（微信，你小子！！）。
+
+**正确的无损路径**：
+
+- 聊天里从**相册**选图并勾选「**原图**」
+- 在微信聊天窗口内用「**+ → 文件**」发送（文件消息不压缩；注意这与「从文件 App 分享到微信」不是一回事）
+- AirDrop / 网盘「上传文件」/ 邮件附件
+
+**给开发者的建议**：别指望 `navigator.share`（Web Share API）能绕过——从系统分享面板直接发给微信同样会被压缩。更稳的方案是引导用户「先存相册（长按原图保存），再从相册勾选原图发送」，本工具就是按这个思路做的。如果你怀疑手上某张图被压过：看格式和尺寸（变成 JPG / 缩水）就能确认，用取色器对比关键颜色更直观。
+
+A heads-up for anyone building an "export image → share" feature: **WeChat recompresses images silently** — no warning, no opt-out.
+
+Same 2400px PNG export, measured:
+
+| | Original (browser export) | After WeChat transfer |
+| --- | --- | --- |
+| Format | PNG (lossless) | JPG (lossy) |
+| Size | 2400px wide | 1279px wide (~halved) |
+| Cyan underline | RGB(126, 226, 248) | RGB(154, 215, 233) (visibly duller) |
+
+Why: the image is converted to JPG (chroma subsampling) and downscaled — gradients and thin lines suffer first.
+
+**The nastiest part**: on mobile, choosing "share → WeChat" from the Files app also gets compressed (converted to JPG and downscaled) with **no** "send original" option — even the file path is not safe (thanks, WeChat).
+
+**Lossless routes**:
+
+- Pick the image from the **photo library** and tick "**Original**"
+- Send via "**+ → File**" inside a WeChat chat (file messages are not compressed; note this is different from sharing from the Files app)
+- AirDrop / cloud drive "upload file" / email attachment
+
+**For developers**: don't count on `navigator.share` (Web Share API) to dodge it — sharing straight to WeChat from the system share sheet still gets compressed. The dependable flow is to guide users to "save to the photo library (long-press the full-res image), then send from the album with Original ticked" — which is exactly what this tool does. If you suspect a file was compressed: check its format and dimensions (JPG / smaller = compressed), or compare key colors with an eyedropper.
 
 ## 开源协议 / License
 
