@@ -273,6 +273,12 @@
         <select id="selAvatar">
           <option value="avatar-Judy.png" data-i18n="avatarJudy">avatar-Judy.png（默认）</option>
           <option value="avatar-Panam.png" data-i18n="avatarPanam">avatar-Panam.png</option>
+          <option value="avatar-Delamain.png">avatar-Delamain.png</option>
+          <option value="avatar-Kerry.png">avatar-Kerry.png</option>
+          <option value="avatar-Mitch.png">avatar-Mitch.png</option>
+          <option value="avatar-River.png">avatar-River.png</option>
+          <option value="avatar-Take.png">avatar-Take.png</option>
+          <option value="avatar-Unknown.png">avatar-Unknown.png</option>
           <option value="" data-i18n="avatarNone">不使用图片</option>
         </select>
         <label class="upload-link" for="fileAvatar" data-i18n="avatarCustom">上传自定义图片…</label>
@@ -297,7 +303,7 @@
       </div>
       <p class="hint" data-i18n-html="hint">
         · 画布逻辑宽度 1200px，高度随消息自动生成。<br />
-        · 头像读取同目录图片文件（avatar-Judy.png / avatar-Panam.png），替换同名文件即可换图。<br />
+        · 头像读取同目录图片文件（可在下拉框选择），替换同名文件即可换图。<br />
         · 双击打开时头像可正常显示；导出 PNG 会被浏览器安全限制拦截，按弹窗提示选择一次图片文件即可自动导出，或用本地服务器（python -m http.server）。<br />
         · 字体：中英可切换。英文页头/用户名使用 Blender Pro（外部引用同目录 Blender-Pro-Book.ttf，缺失时回退 Rajdhani）；暗红细字使用 Play；消息体西文使用 Rajdhani（字重 500；Google Fonts，需联网，离线回退系统字体）。<br />
         · 所有尺寸、间距、颜色参数均可改：见脚本顶部 CONFIG / PALETTE。
@@ -901,7 +907,7 @@
         delTitle: '删除',
         msgPh: '输入消息内容…',
         canvasPlaceholder: '（请输入聊天消息）',
-        hint: '· 画布逻辑宽度 1200px，高度随消息自动生成。<br />· 头像读取同目录图片文件（avatar-Judy.png / avatar-Panam.png），替换同名文件即可换图。<br />· 双击打开时头像可正常显示；导出 PNG 会被浏览器安全限制拦截，按弹窗提示选择一次图片文件即可自动导出，或用本地服务器（python -m http.server）。<br />· 字体：中英可切换。英文页头/用户名使用 Blender Pro（外部引用同目录 Blender-Pro-Book.ttf，缺失时回退 Rajdhani）；暗红细字使用 Play；消息体西文使用 Rajdhani（字重 500；Google Fonts，需联网，离线回退系统字体）。<br />· 所有尺寸、间距、颜色参数均可改：见脚本顶部 CONFIG / PALETTE。',
+        hint: '· 画布逻辑宽度 1200px，高度随消息自动生成。<br />· 头像读取同目录图片文件（可在下拉框选择），替换同名文件即可换图。<br />· 双击打开时头像可正常显示；导出 PNG 会被浏览器安全限制拦截，按弹窗提示选择一次图片文件即可自动导出，或用本地服务器（python -m http.server）。<br />· 字体：中英可切换。英文页头/用户名使用 Blender Pro（外部引用同目录 Blender-Pro-Book.ttf，缺失时回退 Rajdhani）；暗红细字使用 Play；消息体西文使用 Rajdhani（字重 500；Google Fonts，需联网，离线回退系统字体）。<br />· 所有尺寸、间距、颜色参数均可改：见脚本顶部 CONFIG / PALETTE。',
       },
       en: {
         appTitle: 'Cyberpunk Chat Log Generator',
@@ -924,7 +930,7 @@
         delTitle: 'Delete',
         msgPh: 'Type a message…',
         canvasPlaceholder: '(Enter chat messages)',
-        hint: '· Canvas logical width 1200px; height grows with the messages.<br />· Avatar loads from image files in the same folder (avatar-Judy.png / avatar-Panam.png); replace the file to change it.<br />· When opened by double-click, the avatar displays fine, but PNG export may be blocked by browser security. Follow the dialog to pick the image file once and export resumes automatically, or serve locally (python -m http.server).<br />· Fonts: switchable zh/en. EN header/user name use Blender Pro (external file Blender-Pro-Book.ttf in this folder; falls back to Rajdhani if missing); dark-red meta text uses Play; Western letters in the message body use Rajdhani (weight 500; Google Fonts — needs network, falls back to system fonts offline).<br />· All sizes, spacing and colors are configurable: see CONFIG / PALETTE at the top of the script.',
+        hint: '· Canvas logical width 1200px; height grows with the messages.<br />· Avatar images load from files in the same folder (selectable in the dropdown); replace the file to change it.<br />· When opened by double-click, the avatar displays fine, but PNG export may be blocked by browser security. Follow the dialog to pick the image file once and export resumes automatically, or serve locally (python -m http.server).<br />· Fonts: switchable zh/en. EN header/user name use Blender Pro (external file Blender-Pro-Book.ttf in this folder; falls back to Rajdhani if missing); dark-red meta text uses Play; Western letters in the message body use Rajdhani (weight 500; Google Fonts — needs network, falls back to system fonts offline).<br />· All sizes, spacing and colors are configurable: see CONFIG / PALETTE at the top of the script.',
       },
     };
 
