@@ -87,7 +87,7 @@ This project is a joint effort by two creators:
 | 画布 | 逻辑宽度、底部留白 |
 | 头像 | 显示宽度 `avatarW`、左边距 `avatarMarginX`、顶边距 `avatarMarginY` |
 | 页头 | 标题/用户名中文字号与英文字号（`hdrTitleSizeEn` / `hdrUserNameSizeEn`）、字重、信封图标、箭头、下划线、暗红细字 `hdrCode` / `hdrVer` |
-| 气泡 | 字号 `msgFontSize`、西文字重 `msgWeight`（中文保持常规）、行高、内边距、最大宽度、斜角 `bevel`、尾巴 `tailFront` / `tailSlope` / `tailDrop`、气泡间隔 |
+| 气泡 | 字号 `msgFontSize`、西文字重 `msgWeight`（中文保持常规）、英文垂直拉长 `msgStretchEn`、行高、内边距、最大宽度、斜角 `bevel`、尾巴 `tailFront` / `tailSlope` / `tailDrop`、气泡间隔 |
 | 配色 | `PALETTE` 中的全部颜色 |
 | 默认消息 | `DEFAULT_MESSAGES`（中文、英文两套，可自行替换为任意内容） |
 | 字体 | `fontFamily`、`fontHeaderZh`、`fontHeaderEn`、`fontMeta` |
@@ -99,7 +99,7 @@ All adjustable parameters are centralized in `CONFIG` and `PALETTE` at the top o
 | Canvas | Logical width, bottom padding |
 | Avatar | Display width `avatarW`, left margin `avatarMarginX`, top margin `avatarMarginY` |
 | Header | Chinese and English font sizes for the title / username (`hdrTitleSizeEn` / `hdrUserNameSizeEn`), font weight, envelope icon, arrow, underline, dark-red small text `hdrCode` / `hdrVer` |
-| Bubbles | Font size `msgFontSize`, Western-text weight `msgWeight` (CJK stays regular), line height, padding, max width, bevel `bevel`, tail `tailFront` / `tailSlope` / `tailDrop`, bubble spacing |
+| Bubbles | Font size `msgFontSize`, Western-text weight `msgWeight` (CJK stays regular), English vertical stretch `msgStretchEn`, line height, padding, max width, bevel `bevel`, tail `tailFront` / `tailSlope` / `tailDrop`, bubble spacing |
 | Colors | All colors in `PALETTE` |
 | Default messages | `DEFAULT_MESSAGES` (separate Chinese and English sets, freely replaceable with any content) |
 | Fonts | `fontFamily`, `fontHeaderZh`, `fontHeaderEn`, `fontMeta` |

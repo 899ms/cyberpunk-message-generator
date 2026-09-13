@@ -305,7 +305,7 @@
         · 画布逻辑宽度 1200px，高度随消息自动生成。<br />
         · 头像读取同目录图片文件（可在下拉框选择），替换同名文件即可换图。<br />
         · 双击打开时头像可正常显示；导出 PNG 会被浏览器安全限制拦截，按弹窗提示选择一次图片文件即可自动导出，或用本地服务器（python -m http.server）。<br />
-        · 字体：中英可切换。英文页头/用户名使用 Blender Pro（外部引用同目录 Blender-Pro-Book.ttf，缺失时回退 Rajdhani）；暗红细字使用 Play；消息体西文使用 Rajdhani（字重 500；Google Fonts，需联网，离线回退系统字体）。<br />
+        · 字体：中英可切换。英文页头/用户名使用 Blender Pro（外部引用同目录 Blender-Pro-Book.ttf，缺失时回退 Rajdhani）；暗红细字使用 Play；消息体西文使用 Rajdhani（字重 600；Google Fonts，需联网，离线回退系统字体）。<br />
         · 所有尺寸、间距、颜色参数均可改：见脚本顶部 CONFIG / PALETTE。
       </p>
     </aside>
@@ -365,18 +365,19 @@
       msgStartGap: 42,             // 消息区起始 y = 青色下划线下缘 + 此偏移
       msgIndent: 30,               // 消息区（气泡区左起点 x = 消息 icon 左缘 + 此缩进（icon x = marginLeft+hdrLinePadX=170 → 200）
       msgFontSize: 28,
-      msgWeight: 500,              // 西文字重（Rajdhani；中英文通用）—— 中文/CJK 固定常规 400，见 splitRuns
+      msgWeight: 600,              // 西文字重（Rajdhani；中英文通用）—— 中文/CJK 固定常规 400，见 splitRuns
+      msgStretchEn: 1.2,             // 英文消息文字垂直拉长倍率（1 = 原始；>1 纵向拉长，如 1.2 = 拉长 20%；仅英文生效）
       msgLineHeight: 42,           // 多行时行与行基线间距
       bubblePadX: 16,
-      bubblePadY: 14,              // 单行文字上下留白（气泡最小高度 = 字号字形高度 + 2×此值）
+      bubblePadY: 16,              // 单行文字上下留白（气泡最小高度 = 字号字形高度 + 2×此值）
       fontAscent: 24,             // 28px 字体的字形基线以上高度（兜底值，会优先用浏览器实测）
       fontDescent: 8,             // 28px 字体的字形基线以下高度（兜底值）
-      gapBetween: 42,            // 气泡间隔
+      gapBetween: 10,            // 气泡间隔
       maxBubbleRatio: 0.72,      // 气泡最大宽度 = 中间区宽度 × 此比例
-      bevel: 20,                 // 斜角切角高度（左上/右下斜边）
-      tailDrop: 12,              // 尾巴垂直下落高度（px）：尾巴尖端低于气泡底边的距离（原固定等于 bevel，现独立可调）
-      tailFront: 22,             // 尾巴前沿距气泡左壁（镜像后为右壁）
-      tailSlope: 14,             // 尾巴斜边的水平宽度（越小越陡，越贴垂直方向；原45°时为 bevel）
+      bevel: 14,                 // 斜角切角高度（左上/右下斜边）
+      tailDrop: 10,              // 尾巴垂直下落高度（px）：尾巴尖端低于气泡底边的距离（原固定等于 bevel，现独立可调）
+      tailFront: 15,             // 尾巴前沿距气泡左壁（镜像后为右壁）
+      tailSlope: 10,             // 尾巴斜边的水平宽度（越小越陡，越贴垂直方向；原45°时为 bevel）
       minBubbleW: 80,            // 气泡主体最小宽度（≥ bevel + tailFront）
       borderW: 2,                // 气泡描边宽度
       bottomGap: 200,            // 底部留白：图片高度 = 内容高度 + 此值（与 gradHeight 无关）；若需底部红线可见需 bottomGap + bevel > bottomLineGap（默认即 > 140）
@@ -466,6 +467,8 @@
     // 消息文字分段：西文（ASCII + Latin-1，即 Rajdhani 覆盖范围）与其它字符（中文等）分开；
     // canvas 一个字体串只有一种字重，故按段分别测量/绘制——西文用 msgWeight，中文等固定常规 400
     function msgWeight() { return CONFIG.msgWeight; }
+    // 消息文字垂直拉长倍率：仅英文生效（msgStretchEn），中文固定 1（不拉长）
+    function msgStretch() { return LANG === 'en' ? CONFIG.msgStretchEn : 1; }
     function splitRuns(text) {
       const runs = [];
       let cur = '', curWestern = null;
@@ -486,12 +489,22 @@
       }
       return w;
     }
-    // 按分段规则绘制一行：西文用 msgWeight（Rajdhani），中文等保持常规 400
+    // 按分段规则绘制一行：西文用 msgWeight（Rajdhani），中文等保持常规 400；
+    // 英文模式可再按 msgStretchEn 做垂直拉长（以基线为锚点缩放，水平宽度不变）
     function drawStyledLine(line, x, baseY) {
+      const st = msgStretch();
       let cx = x;
       for (const run of splitRuns(line)) {
         setFont(CONFIG.msgFontSize, run.western ? msgWeight() : 400, CONFIG.fontFamily);
-        ctx.fillText(run.text, cx, baseY);
+        if (st !== 1) {
+          ctx.save();
+          ctx.translate(cx, baseY);
+          ctx.scale(1, st);
+          ctx.fillText(run.text, 0, 0);
+          ctx.restore();
+        } else {
+          ctx.fillText(run.text, cx, baseY);
+        }
         cx += ctx.measureText(run.text).width;
       }
     }
@@ -666,17 +679,20 @@
       setFont(CONFIG.msgFontSize, 400, CONFIG.fontFamily);
 
       const items = [];
-      // 实测字形高度（有 measureText 指标则优先），保证单行气泡 = 字体高度 + 上下边距
+      // 实测字形高度（有 measureText 指标则优先），保证单行气泡 = 字体高度 + 上下边距；
+      // 垂直拉长倍率同步作用于字形高度与行距（英文生效）
+      const st = msgStretch();
       const tm = ctx.measureText('中AgW');
-      const tAsc = tm.actualBoundingBoxAscent || CONFIG.fontAscent;
-      const tDesc = tm.actualBoundingBoxDescent || CONFIG.fontDescent;
+      const tAsc = (tm.actualBoundingBoxAscent || CONFIG.fontAscent) * st;
+      const tDesc = (tm.actualBoundingBoxDescent || CONFIG.fontDescent) * st;
+      const lineH = CONFIG.msgLineHeight * st;
       let cursor = msgArea().y;
       for (const m of msgs) {
         const lines = wrapLines(m.text, inner);
         let w = 0;
         for (const ln of lines) w = Math.max(w, measureStyledLine(ln));
         const bw = Math.min(maxW, Math.max(w + CONFIG.bubblePadX * 2, CONFIG.minBubbleW));
-        const bh = CONFIG.bubblePadY * 2 + tAsc + tDesc + Math.max(0, lines.length - 1) * CONFIG.msgLineHeight;
+        const bh = CONFIG.bubblePadY * 2 + tAsc + tDesc + Math.max(0, lines.length - 1) * lineH;
         items.push({ side: m.side, lines, y: cursor, w: bw, h: bh, ascent: tAsc });
         cursor += bh + CONFIG.tailDrop + CONFIG.gapBetween;
       }
@@ -830,7 +846,8 @@
         ctx.stroke();
         ctx.fillStyle = it.placeholder ? PALETTE.placeholder : (isMe ? PALETTE.bubbleTextMe : PALETTE.bubbleText);
         const base = it.y + CONFIG.bubblePadY + it.ascent;
-        it.lines.forEach((ln, i) => drawStyledLine(ln, x + CONFIG.bubblePadX, base + i * CONFIG.msgLineHeight));
+        const lineH = CONFIG.msgLineHeight * msgStretch();
+        it.lines.forEach((ln, i) => drawStyledLine(ln, x + CONFIG.bubblePadX, base + i * lineH));
         ctx.restore();
       }
     }
@@ -907,7 +924,7 @@
         delTitle: '删除',
         msgPh: '输入消息内容…',
         canvasPlaceholder: '（请输入聊天消息）',
-        hint: '· 画布逻辑宽度 1200px，高度随消息自动生成。<br />· 头像读取同目录图片文件（可在下拉框选择），替换同名文件即可换图。<br />· 双击打开时头像可正常显示；导出 PNG 会被浏览器安全限制拦截，按弹窗提示选择一次图片文件即可自动导出，或用本地服务器（python -m http.server）。<br />· 字体：中英可切换。英文页头/用户名使用 Blender Pro（外部引用同目录 Blender-Pro-Book.ttf，缺失时回退 Rajdhani）；暗红细字使用 Play；消息体西文使用 Rajdhani（字重 500；Google Fonts，需联网，离线回退系统字体）。<br />· 所有尺寸、间距、颜色参数均可改：见脚本顶部 CONFIG / PALETTE。',
+        hint: '· 画布逻辑宽度 1200px，高度随消息自动生成。<br />· 头像读取同目录图片文件（可在下拉框选择），替换同名文件即可换图。<br />· 双击打开时头像可正常显示；导出 PNG 会被浏览器安全限制拦截，按弹窗提示选择一次图片文件即可自动导出，或用本地服务器（python -m http.server）。<br />· 字体：中英可切换。英文页头/用户名使用 Blender Pro（外部引用同目录 Blender-Pro-Book.ttf，缺失时回退 Rajdhani）；暗红细字使用 Play；消息体西文使用 Rajdhani（字重 600；Google Fonts，需联网，离线回退系统字体）。<br />· 所有尺寸、间距、颜色参数均可改：见脚本顶部 CONFIG / PALETTE。',
       },
       en: {
         appTitle: 'Cyberpunk Chat Log Generator',
@@ -930,7 +947,7 @@
         delTitle: 'Delete',
         msgPh: 'Type a message…',
         canvasPlaceholder: '(Enter chat messages)',
-        hint: '· Canvas logical width 1200px; height grows with the messages.<br />· Avatar images load from files in the same folder (selectable in the dropdown); replace the file to change it.<br />· When opened by double-click, the avatar displays fine, but PNG export may be blocked by browser security. Follow the dialog to pick the image file once and export resumes automatically, or serve locally (python -m http.server).<br />· Fonts: switchable zh/en. EN header/user name use Blender Pro (external file Blender-Pro-Book.ttf in this folder; falls back to Rajdhani if missing); dark-red meta text uses Play; Western letters in the message body use Rajdhani (weight 500; Google Fonts — needs network, falls back to system fonts offline).<br />· All sizes, spacing and colors are configurable: see CONFIG / PALETTE at the top of the script.',
+        hint: '· Canvas logical width 1200px; height grows with the messages.<br />· Avatar images load from files in the same folder (selectable in the dropdown); replace the file to change it.<br />· When opened by double-click, the avatar displays fine, but PNG export may be blocked by browser security. Follow the dialog to pick the image file once and export resumes automatically, or serve locally (python -m http.server).<br />· Fonts: switchable zh/en. EN header/user name use Blender Pro (external file Blender-Pro-Book.ttf in this folder; falls back to Rajdhani if missing); dark-red meta text uses Play; Western letters in the message body use Rajdhani (weight 600; Google Fonts — needs network, falls back to system fonts offline).<br />· All sizes, spacing and colors are configurable: see CONFIG / PALETTE at the top of the script.',
       },
     };
 
