@@ -413,6 +413,7 @@
 
       hdrTitleSize: 34,            // “消息”字号（中文）
       hdrTitleSizeEn: 43,          // “MESSAGES”字号（英文，单独可调）
+      hdrTitleSpacingEn: -3,        // “MESSAGES”字符间距（px；0=默认；负值收紧；仅英文）
       hdrTitleWeight: 400,         // “消息”字重（常规=400）；中心Y = 信封icon中心Y（基线由字形反推）
       hdrArrowGap: 5,              // “消息”右缘与“>”箭头左缘间距
       hdrArrowSize: 34,            // “>”箭头包围盒尺寸（对照 arrow.svg）；中心Y = 信封icon中心Y
@@ -565,6 +566,8 @@
     }
     // 画布用户名字符间距：英文可配（hdrUserNameSpacingEn），中文固定 0
     function userNameSpacing() { return LANG === 'en' ? CONFIG.hdrUserNameSpacingEn : 0; }
+    // 画布标题字符间距：英文可配（hdrTitleSpacingEn），中文固定 0
+    function titleSpacing() { return LANG === 'en' ? CONFIG.hdrTitleSpacingEn : 0; }
     // 消息文字分段：西文（ASCII + Latin-1，即 Rajdhani 覆盖范围）与其它字符（中文等）分开；
     // canvas 一个字体串只有一种字重，故按段分别测量/绘制——西文用 msgWeight，中文等固定常规 400
     function msgWeight() { return CONFIG.msgWeight; }
@@ -880,7 +883,7 @@
 
       // 信封 icon（顶 = 细红字下缘 + hdrCodeToIconGapY）→ 「消息」 → 「>」箭头（标题/箭头与 icon 中心对齐）
       drawEnvelope(x0, g.iconTop, CONFIG.hdrIconSize, H);
-      setFont(titleSize(), CONFIG.hdrTitleWeight, headerFont());
+      setFont(titleSize(), CONFIG.hdrTitleWeight, headerFont(), titleSpacing());
       ctx.fillStyle = PALETTE.hdrTitleColor;
       const titleW = ctx.measureText(canvasTitle()).width;
       const titleX = x0 + CONFIG.hdrIconSize + CONFIG.hdrIconGap;
