@@ -426,6 +426,7 @@
       hdrUserNameWeight: 400,      // 用户名字重（中文；400=常规）
       hdrUserNameWeightEn: 500,    // 用户名字重（英文；Rajdhani Medium，可调 400/500/600/700）
       hdrUserNameUpperEn: true,    // 英文用户名自动转大写（true/false；仅影响画布显示，不改输入框）
+      hdrUserNameSpacingEn: -4,     // 英文用户名字符间距（px；0=默认；仅英文）
       hdrUserNameLineGap: 10,      // 用户名下划线Y = 用户名字形下缘 + 此值
       hdrUserNameLineExtend: 10,   // 用户名青色下划线两端延伸长度（px，在文本宽度基础上各向外多延伸）
       hdrUserNameLineExtGap: 15,   // 暗红延伸线与用户名下划线的水平间距（起点从下线右端右移）
@@ -542,8 +543,9 @@
     let customAvatar = null;      // 上传图片 dataURL
     let customImageSource = null; // 上传图片 Image
     /* ---------- 工具 ---------- */
-    function setFont(px, weight, family) {
+    function setFont(px, weight, family, spacing) {
       ctx.font = (weight ? weight + ' ' : '') + px + 'px ' + (family || CONFIG.fontFamily);
+      ctx.letterSpacing = (spacing || 0) + 'px';   // 字符间距（现代浏览器支持；不支持时静默忽略）
     }
     // 画布页头字体：中文用系统字体栈，英文用 BlenderPro（缺失自动回退 Rajdhani）
     function headerFont() { return LANG === 'en' ? CONFIG.fontHeaderEn : CONFIG.fontHeaderZh; }
@@ -561,6 +563,8 @@
       const raw = $('inUser').value.trim() || 'UNKNOWN';
       return (LANG === 'en' && CONFIG.hdrUserNameUpperEn) ? raw.toUpperCase() : raw;
     }
+    // 画布用户名字符间距：英文可配（hdrUserNameSpacingEn），中文固定 0
+    function userNameSpacing() { return LANG === 'en' ? CONFIG.hdrUserNameSpacingEn : 0; }
     // 消息文字分段：西文（ASCII + Latin-1，即 Rajdhani 覆盖范围）与其它字符（中文等）分开；
     // canvas 一个字体串只有一种字重，故按段分别测量/绘制——西文用 msgWeight，中文等固定常规 400
     function msgWeight() { return CONFIG.msgWeight; }
@@ -887,7 +891,7 @@
       // 用户名：位于箭头右侧，更大字号，中心Y = icon 中心Y；下划线与前方那条同粗同色、长度=用户名实际宽度，两端延伸
       const arrowEnd = arrowX + CONFIG.hdrArrowSize * 0.68;
       const nameX = arrowEnd + CONFIG.hdrUserNameGap;
-      setFont(userNameSize(), userNameWeight(), userNameFont());
+      setFont(userNameSize(), userNameWeight(), userNameFont(), userNameSpacing());
       ctx.fillStyle = PALETTE.userColor;
       const nameW = ctx.measureText(name).width;
       ctx.fillText(name, nameX, g.nameBase);
