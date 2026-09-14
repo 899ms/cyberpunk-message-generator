@@ -367,7 +367,7 @@
         · 画布逻辑宽度 1200px，高度随消息自动生成。<br />
         · 头像读取同目录图片文件（可在下拉框选择），替换同名文件即可换图。<br />
         · 双击打开时头像可正常显示；导出 PNG 会被浏览器安全限制拦截，按弹窗提示选择一次图片文件即可自动导出，或用本地服务器（python -m http.server）。<br />
-        · 字体：中英可切换。英文页头/用户名使用 Blender Pro（外部引用同目录 Blender-Pro-Book.ttf，缺失时回退 Rajdhani）；暗红细字使用 Play；消息体西文使用 Rajdhani（字重 600；Google Fonts，需联网，离线回退系统字体）。<br />
+        · 字体：中英可切换。英文页头（MESSAGES）使用 Blender Pro（外部引用同目录 Blender-Pro-Book.ttf，缺失时回退 Rajdhani）；英文用户名使用 Rajdhani（字符支持更全）；暗红细字使用 Play；消息体西文使用 Rajdhani（字重 600；Google Fonts，需联网，离线回退系统字体）。<br />
         · 所有尺寸、间距、颜色参数均可改：见脚本顶部 CONFIG / PALETTE。
       </p>
     </aside>
@@ -399,7 +399,8 @@
       fontFamily: '"Rajdhani","Microsoft YaHei","PingFang SC",sans-serif',
       fontMeta: '"Play","Rajdhani",sans-serif',                       // 暗红细字（hdrCode / hdrVer）
       fontHeaderZh: '"Microsoft YaHei","PingFang SC",sans-serif',     // 中文画布标题 / 用户名
-      fontHeaderEn: '"BlenderPro","Rajdhani","Microsoft YaHei","PingFang SC",sans-serif', // 英文画布标题 / 用户名
+      fontHeaderEn: '"BlenderPro","Rajdhani","Microsoft YaHei","PingFang SC",sans-serif', // 英文画布标题（MESSAGES）
+      fontUserNameEn: '"Rajdhani","Microsoft YaHei","PingFang SC",sans-serif', // 英文用户名（Rajdhani：Blender Pro 部分字符不支持）
 
       /* ---- 头部（全部可配置颜色/位置/字号） ---- */
       hdrCode: 'TRN_TCLAS_800095', // 顶部细红字文本
@@ -421,9 +422,11 @@
       hdrLinePadX: 16,             // 下划线两端延伸长度；icon 左端 x = marginLeft + 此值（下划线左端比 icon 多伸出的量）
       hdrUserNameGap: 40,          // 用户名与箭头终点间距
       hdrUserNameSize: 45,         // 用户名字号（中文；中心Y = 信封icon中心Y；基线由字形反推）
-      hdrUserNameSizeEn: 55,       // 用户名字号（英文，单独可调；中心Y = 信封icon中心Y；基线由字形反推）
-      hdrUserNameWeight: 400,      // 用户名字重（常规=400）
-      hdrUserNameLineGap: 15,      // 用户名下划线Y = 用户名字形下缘 + 此值
+      hdrUserNameSizeEn: 50,       // 用户名字号（英文，单独可调；中心Y = 信封icon中心Y；基线由字形反推）
+      hdrUserNameWeight: 400,      // 用户名字重（中文；400=常规）
+      hdrUserNameWeightEn: 500,    // 用户名字重（英文；Rajdhani Medium，可调 400/500/600/700）
+      hdrUserNameUpperEn: true,    // 英文用户名自动转大写（true/false；仅影响画布显示，不改输入框）
+      hdrUserNameLineGap: 10,      // 用户名下划线Y = 用户名字形下缘 + 此值
       hdrUserNameLineExtend: 10,   // 用户名青色下划线两端延伸长度（px，在文本宽度基础上各向外多延伸）
       hdrUserNameLineExtGap: 15,   // 暗红延伸线与用户名下划线的水平间距（起点从下线右端右移）
       hdrUserNameLineExtW: 1,      // 暗红延伸线粗细
@@ -452,6 +455,15 @@
       bottomGap: 200,            // 底部留白：图片高度 = 内容高度 + 此值（与 gradHeight 无关）；若需底部红线可见需 bottomGap + bevel > bottomLineGap（默认即 > 140）
 
       bottomLineGap: 100,        // 底部暗红线距最后消息底边的距离（左右端 = marginLeft / width - marginRight）
+
+      /* ---- 分隔（时间 / 间隔提示）：两种样式，均为居中一行文字 ---- */
+      dividerFont: '"Rajdhani","Microsoft YaHei","PingFang SC",sans-serif', // 分隔文字字体
+      dividerFontSize: 22,         // 分隔文字字号
+      dividerWeight: 400,          // 分隔文字字重
+      dividerLineGapX: 14,         // 分割线与文字的间距（左右各一段；仅「带分割线」样式生效）
+      dividerLineLen: 30,          // 分割线长度（px，文字两侧各一条短线段；0 = 不画线）
+      dividerLineW: 2,             // 分割线粗细
+      dividerPadY: 26,             // 分隔块上下留白（在气泡间隔 gapBetween 之外额外增加）
     };
     /* 配色（全部可修改） */
     const PALETTE = {
@@ -475,6 +487,8 @@
       bubbleText: '#66cecd',     // 对方文字颜色（蓝方气泡）
       bubbleTextMe: '#49e0ad',    // 我方文字颜色（绿方气泡）
       placeholder: '#5b6c80',     // 空列表占位文字
+      dividerText: '#8fa3bd',     // 分隔文字颜色
+      dividerLine: '#3a4a5a',     // 分割线颜色
     };
     let cv = document.getElementById('cv');
     let ctx = cv.getContext('2d');
@@ -495,10 +509,12 @@
     // 默认聊天记录（中/英各一套）：初始化按语言填充；切换语言时，仍是旧语言默认原文的消息自动换成新语言版本，改过的消息保持原样
     const DEFAULT_MESSAGES = {
       zh: [
+        { side: 'dividerText', text: '- 9:00 -' },
         { side: 'other', text: '有些话我非说不可' },
         { side: 'other', text: '总之，就是……' },
         { side: 'other', text: '我想说，谢谢你，V。谢谢你跟我在一起，谢谢你做的一切。谢谢你做自己' },
         { side: 'other', text: '我就想让你知道。你特别棒。' },
+        { side: 'divider', text: '十几分钟后' },
         { side: 'other', text: '但现在我得找个洞钻进去，尴尬死了 -.-' },
         { side: 'other', text: '<3' },
         { side: 'me', text: '啊哟喂，我的小宝贝儿难为情了还' },
@@ -506,9 +522,12 @@
         { side: 'other', text: '一点都不好笑！！！' },
       ],
       en: [
+        { side: 'dividerText', text: '9:00' },
         { side: 'other', text: "¡Hola calabacita!" },
         { side: 'other', text: "Thinking about you <3" },
         { side: 'other', text: "Wanna guess what?" },
+        { side: 'dividerText', text: '- 5 minutes later -' },
+         { side: 'divider', text: '5 minutes later' },
         { side: 'me', text: "That if I were an animal, I'd totally be a dog." },
         { side: 'me', text: "Because I'm cute, loyal and love to lick eeeeeverything" },
         { side: 'other', text: 'wow' },
@@ -528,16 +547,27 @@
     }
     // 画布页头字体：中文用系统字体栈，英文用 BlenderPro（缺失自动回退 Rajdhani）
     function headerFont() { return LANG === 'en' ? CONFIG.fontHeaderEn : CONFIG.fontHeaderZh; }
+    // 画布用户名字体：英文用 Rajdhani（Blender Pro 部分字符不支持，会跳字），中文沿用中文字体栈
+    function userNameFont() { return LANG === 'en' ? CONFIG.fontUserNameEn : CONFIG.fontHeaderZh; }
     // 画布页头标题文本：英文固定大写 MESSAGES
     function canvasTitle() { return LANG === 'en' ? 'MESSAGES' : '消息'; }
     // 画布页头字号：中英文可分别配置（英文默认与中文相同，可单独调整）
     function titleSize() { return LANG === 'en' ? CONFIG.hdrTitleSizeEn : CONFIG.hdrTitleSize; }
     function userNameSize() { return LANG === 'en' ? CONFIG.hdrUserNameSizeEn : CONFIG.hdrUserNameSize; }
+    // 画布用户名字重：中英可分开配置
+    function userNameWeight() { return LANG === 'en' ? CONFIG.hdrUserNameWeightEn : CONFIG.hdrUserNameWeight; }
+    // 画布上的用户名文本：英文模式自动转大写（hdrUserNameUpperEn 可关；仅影响画布，不改输入框）
+    function userNameText() {
+      const raw = $('inUser').value.trim() || 'UNKNOWN';
+      return (LANG === 'en' && CONFIG.hdrUserNameUpperEn) ? raw.toUpperCase() : raw;
+    }
     // 消息文字分段：西文（ASCII + Latin-1，即 Rajdhani 覆盖范围）与其它字符（中文等）分开；
     // canvas 一个字体串只有一种字重，故按段分别测量/绘制——西文用 msgWeight，中文等固定常规 400
     function msgWeight() { return CONFIG.msgWeight; }
     // 消息文字垂直拉长倍率：仅英文生效（msgStretchEn），中文固定 1（不拉长）
     function msgStretch() { return LANG === 'en' ? CONFIG.msgStretchEn : 1; }
+    // 分隔消息类型：divider = 带分割线；dividerText = 纯文字（用于「19:00」「十分钟后」这类间隔提示）
+    function isDivider(side) { return side === 'divider' || side === 'dividerText'; }
     function splitRuns(text) {
       const runs = [];
       let cur = '', curWestern = null;
@@ -575,18 +605,6 @@
           ctx.fillText(run.text, cx, baseY);
         }
         cx += ctx.measureText(run.text).width;
-      }
-    }
-    // 合成加粗：canvas 字体字重对 CJK 常不生效（实测 400/700 完全一样），
-    // 这里用多次偏移绘制让字重真实变粗。weight>400 时加粗，≤400 则正常单次绘制。
-    function drawWeightText(text, x, baseY, weight) {
-      ctx.fillText(text, x, baseY);
-      if (weight && weight > 400) {
-        const off = Math.max(1, Math.round((weight - 400) / 300));
-        ctx.fillText(text, x - off, baseY);
-        ctx.fillText(text, x + off, baseY);
-        ctx.fillText(text, x, baseY - off);
-        ctx.fillText(text, x, baseY + off);
       }
     }
     function loadImage(src) {
@@ -728,7 +746,7 @@
       const a = headerAnchor();
       const title = measureGlyph(canvasTitle(), titleSize(), CONFIG.hdrTitleWeight, headerFont());
       const ver = measureGlyph(CONFIG.hdrVer, CONFIG.hdrVerSize, 400, CONFIG.fontMeta);
-      const ng = measureGlyph(name, userNameSize(), CONFIG.hdrUserNameWeight, headerFont());
+      const ng = measureGlyph(name, userNameSize(), userNameWeight(), userNameFont());
       const nameLineY = a.iconCenter + (ng.asc + ng.desc) / 2 + CONFIG.hdrUserNameLineGap;
       return {
         iconTop: a.iconTop,
@@ -757,6 +775,14 @@
       const lineH = CONFIG.msgLineHeight * st;
       let cursor = msgArea().y;
       for (const m of msgs) {
+        if (isDivider(m.side)) {
+          // 分隔：单行居中文字（带分割线 / 纯文字）；高度 = 字形高度 + 上下留白
+          const dg = measureGlyph(m.text, CONFIG.dividerFontSize, CONFIG.dividerWeight, CONFIG.dividerFont);
+          const dh = CONFIG.dividerPadY * 2 + dg.asc + dg.desc;
+          items.push({ dividerType: m.side, text: m.text, y: cursor, h: dh, ascent: dg.asc, desc: dg.desc });
+          cursor += dh + CONFIG.gapBetween;
+          continue;
+        }
         const lines = wrapLines(m.text, inner);
         let w = 0;
         for (const ln of lines) w = Math.max(w, measureStyledLine(ln));
@@ -854,17 +880,17 @@
       ctx.fillStyle = PALETTE.hdrTitleColor;
       const titleW = ctx.measureText(canvasTitle()).width;
       const titleX = x0 + CONFIG.hdrIconSize + CONFIG.hdrIconGap;
-      drawWeightText(canvasTitle(), titleX, g.titleBase, CONFIG.hdrTitleWeight);
+      ctx.fillText(canvasTitle(), titleX, g.titleBase);
       const arrowX = titleX + titleW + CONFIG.hdrArrowGap;
       drawArrow(arrowX, g.arrowTop, CONFIG.hdrArrowSize);
 
       // 用户名：位于箭头右侧，更大字号，中心Y = icon 中心Y；下划线与前方那条同粗同色、长度=用户名实际宽度，两端延伸
       const arrowEnd = arrowX + CONFIG.hdrArrowSize * 0.68;
       const nameX = arrowEnd + CONFIG.hdrUserNameGap;
-      setFont(userNameSize(), CONFIG.hdrUserNameWeight, headerFont());
+      setFont(userNameSize(), userNameWeight(), userNameFont());
       ctx.fillStyle = PALETTE.userColor;
       const nameW = ctx.measureText(name).width;
-      drawWeightText(name, nameX, g.nameBase, CONFIG.hdrUserNameWeight);
+      ctx.fillText(name, nameX, g.nameBase);
       const nameLineX0 = nameX - CONFIG.hdrUserNameLineExtend;
       const nameLineX1 = nameX + nameW + CONFIG.hdrUserNameLineExtend;
       ctx.strokeStyle = PALETTE.hdrLineColor;
@@ -902,6 +928,7 @@
       const xMe = CONFIG.width - CONFIG.marginRight;
 
       for (const it of laid.items) {
+        if (it.dividerType) { drawDivider(it); continue; }
         const isMe = it.side === 'me';
         const x = isMe ? xMe - it.w : xOther;
 
@@ -918,6 +945,36 @@
         const lineH = CONFIG.msgLineHeight * msgStretch();
         it.lines.forEach((ln, i) => drawStyledLine(ln, x + CONFIG.bubblePadX, base + i * lineH));
         ctx.restore();
+      }
+    }
+    /* ---------- 分隔（时间 / 间隔提示） ---------- */
+    // 「带分割线」：居中文字 + 文字两侧的短分割线（长度/间距可配，长度设为 0 即取消线条）；
+    // 「纯文字」：仅居中文字（文字为空的分隔不渲染）
+    function drawDivider(it) {
+      const xL = msgArea().x;
+      const xR = CONFIG.width - CONFIG.marginRight;
+      setFont(CONFIG.dividerFontSize, CONFIG.dividerWeight, CONFIG.dividerFont);
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'alphabetic';
+      const tw = it.text ? ctx.measureText(it.text).width : 0;
+      const tx = (xL + xR - tw) / 2;                       // 文字水平居中
+      const base = it.y + CONFIG.dividerPadY + it.ascent;
+      if (tw) {
+        ctx.fillStyle = PALETTE.dividerText;
+        ctx.fillText(it.text, tx, base);
+      }
+      if (it.dividerType === 'divider' && tw && CONFIG.dividerLineLen > 0) {
+        const lineY = base + (it.desc - it.ascent) / 2;    // 线心 = 文字视觉中心
+        const segL = tx - CONFIG.dividerLineGapX;          // 左线右端
+        const segR = tx + tw + CONFIG.dividerLineGapX;     // 右线左端
+        ctx.strokeStyle = PALETTE.dividerLine;
+        ctx.lineWidth = CONFIG.dividerLineW;
+        ctx.beginPath();
+        ctx.moveTo(segL - CONFIG.dividerLineLen, lineY);
+        ctx.lineTo(segL, lineY);
+        ctx.moveTo(segR, lineY);
+        ctx.lineTo(segR + CONFIG.dividerLineLen, lineY);
+        ctx.stroke();
       }
     }
     /* ---------- 底部暗红线 ---------- */
@@ -951,7 +1008,7 @@
         } catch (e) { /* 字体不可用时静默回退 */ }
       }
       const msgs = messages.filter((m) => String(m.text).trim() !== '');
-      const name = $('inUser').value.trim() || 'UNKNOWN';
+      const name = userNameText();
       const scale = Number($('selScale').value);
 
       const laid = computeLayout(msgs);
@@ -984,7 +1041,7 @@
         avatarCustom: '上传自定义图片…',
         avatarNone: '不使用图片',
         avatarCustomUploaded: '自定义图片（已上传）',
-        msgListLabel: '消息列表（对方=蓝色 · 我方=绿色）',
+        msgListLabel: '消息列表（对方=蓝色 · 我方=绿色 · 分隔=灰色）',
         addMsg: '＋ 添加消息',
         scale: '导出倍率',
         exportBtn: '导出 PNG（PC 端点这个）',
@@ -993,10 +1050,12 @@
         saveTip: '提示：<b>不要直接分享到微信</b>——微信会压缩图片、导致色彩不准。正确做法：先「保存到相册」，再在微信里从相册选图、<b>勾选「原图」</b>发送。',
         sideOther: '对方 · 蓝',
         sideMe: '我方 · 绿',
+        sideDivider: '分隔 · 分割线',
+        sideDividerText: '分隔 · 纯文字',
         delTitle: '删除',
         msgPh: '输入消息内容…',
         canvasPlaceholder: '（请输入聊天消息）',
-        hint: '· 画布逻辑宽度 1200px，高度随消息自动生成。<br />· 头像读取同目录图片文件（可在下拉框选择），替换同名文件即可换图。<br />· 双击打开时头像可正常显示；导出 PNG 会被浏览器安全限制拦截，按弹窗提示选择一次图片文件即可自动导出，或用本地服务器（python -m http.server）。<br />· 字体：中英可切换。英文页头/用户名使用 Blender Pro（外部引用同目录 Blender-Pro-Book.ttf，缺失时回退 Rajdhani）；暗红细字使用 Play；消息体西文使用 Rajdhani（字重 600；Google Fonts，需联网，离线回退系统字体）。<br />· 手机端点「保存到相册」，长按图片选择「存储到照片」存入相册；之后从相册转发（微信勾选「原图」）可避免聊天软件二次压缩。<br />· 所有尺寸、间距、颜色参数均可改：见脚本顶部 CONFIG / PALETTE。',
+        hint: '· 画布逻辑宽度 1200px，高度随消息自动生成。<br />· 头像读取同目录图片文件（可在下拉框选择），替换同名文件即可换图。<br />· 双击打开时头像可正常显示；导出 PNG 会被浏览器安全限制拦截，按弹窗提示选择一次图片文件即可自动导出，或用本地服务器（python -m http.server）。<br />· 字体：中英可切换。英文页头（MESSAGES）使用 Blender Pro（外部引用同目录 Blender-Pro-Book.ttf，缺失时回退 Rajdhani）；英文用户名使用 Rajdhani（字符支持更全）；暗红细字使用 Play；消息体西文使用 Rajdhani（字重 600；Google Fonts，需联网，离线回退系统字体）。<br />· 手机端点「保存到相册」，长按图片选择「存储到照片」存入相册；之后从相册转发（微信勾选「原图」）可避免聊天软件二次压缩。<br />· 消息类型：对方=蓝 / 我方=绿 / 分隔=灰（用于「19:00」「十分钟后」这类间隔提示，带分割线或纯文字两种样式，样式均可配）。<br />· 所有尺寸、间距、颜色参数均可改：见脚本顶部 CONFIG / PALETTE。',
       },
       en: {
         appTitle: 'Cyberpunk Chat Log Generator',
@@ -1010,7 +1069,7 @@
         avatarCustom: 'Upload custom image…',
         avatarNone: 'No image',
         avatarCustomUploaded: 'Custom image (uploaded)',
-        msgListLabel: 'Messages (Other = blue · Me = green)',
+        msgListLabel: 'Messages (Other = blue · Me = green · Divider = gray)',
         addMsg: '+ Add message',
         scale: 'Export scale',
         exportBtn: 'Export PNG (use on desktop)',
@@ -1019,10 +1078,12 @@
         saveTip: 'Tip: <b>do not share directly to WeChat</b> — it recompresses images and shifts colors. Instead: tap "Save to Photos" first, then pick the image from your album in WeChat and <b>tick "Original"</b>.',
         sideOther: 'Other · Blue',
         sideMe: 'Me · Green',
+        sideDivider: 'Divider · Line',
+        sideDividerText: 'Divider · Text',
         delTitle: 'Delete',
         msgPh: 'Type a message…',
         canvasPlaceholder: '(Enter chat messages)',
-        hint: '· Canvas logical width 1200px; height grows with the messages.<br />· Avatar images load from files in the same folder (selectable in the dropdown); replace the file to change it.<br />· When opened by double-click, the avatar displays fine, but PNG export may be blocked by browser security. Follow the dialog to pick the image file once and export resumes automatically, or serve locally (python -m http.server).<br />· Fonts: switchable zh/en. EN header/user name use Blender Pro (external file Blender-Pro-Book.ttf in this folder; falls back to Rajdhani if missing); dark-red meta text uses Play; Western letters in the message body use Rajdhani (weight 600; Google Fonts — needs network, falls back to system fonts offline).<br />· On mobile, tap "Save to Photos" and press-and-hold the image to store it in your photo library; then forward from the album (tick "Original" in WeChat) to avoid messaging-app compression.<br />· All sizes, spacing and colors are configurable: see CONFIG / PALETTE at the top of the script.',
+        hint: '· Canvas logical width 1200px; height grows with the messages.<br />· Avatar images load from files in the same folder (selectable in the dropdown); replace the file to change it.<br />· When opened by double-click, the avatar displays fine, but PNG export may be blocked by browser security. Follow the dialog to pick the image file once and export resumes automatically, or serve locally (python -m http.server).<br />· Fonts: switchable zh/en. EN header (MESSAGES) uses Blender Pro (external file Blender-Pro-Book.ttf in this folder; falls back to Rajdhani if missing); EN user name uses Rajdhani (broader character coverage); dark-red meta text uses Play; Western letters in the message body use Rajdhani (weight 600; Google Fonts — needs network, falls back to system fonts offline).<br />· On mobile, tap "Save to Photos" and press-and-hold the image to store it in your photo library; then forward from the album (tick "Original" in WeChat) to avoid messaging-app compression.<br />· Message types: Other = blue / Me = green / Divider = gray (for "19:00" / "ten minutes later" separators; line or text-only styles, fully configurable).<br />· All sizes, spacing and colors are configurable: see CONFIG / PALETTE at the top of the script.',
       },
     };
 
@@ -1112,6 +1173,8 @@
         '<select class="side">' +
         '<option value="other">' + L10N[LANG].sideOther + '</option>' +
         '<option value="me">' + L10N[LANG].sideMe + '</option>' +
+        '<option value="divider">' + L10N[LANG].sideDivider + '</option>' +
+        '<option value="dividerText">' + L10N[LANG].sideDividerText + '</option>' +
         '</select>' +
         '<button class="del" title="' + L10N[LANG].delTitle + '">✕</button>' +
         '</div>' +

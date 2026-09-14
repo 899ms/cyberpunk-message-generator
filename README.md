@@ -39,23 +39,25 @@ This project is a joint effort by two creators:
 - **高度还原游戏短信界面**：配色、信封图标、斜角气泡与小尾巴、暗红细字、下划线、渐变背景等细节，均按《赛博朋克 2077》现行短信界面的风格制作
 - **中英双语**：界面文案、画布页头（消息 / MESSAGES）、字体与默认聊天记录都会跟随语言切换
   - 中文：微软雅黑 / 苹方（页头与用户名）
-  - 英文：Blender Pro（页头与用户名，缺失时回退 Rajdhani）
+  - 英文：Blender Pro（页头，缺失时回退 Rajdhani）、Rajdhani（用户名，字符支持更全，英文模式自动转大写）
   - 暗红细字：Play
-  - 消息体西文：Rajdhani（西文 500 字重，中文保持常规）
+  - 消息体西文：Rajdhani（西文字重可配 `msgWeight`，中文保持常规）
 - **大量可配置字段**：脚本顶部 `CONFIG` / `PALETTE` 涵盖尺寸、间距、字号、字重、边距与颜色；中英文的字号、字重均可独立配置
 - **单文件、零依赖**：无需安装、无需构建，浏览器打开即用；导出支持 1x / 2x / 3x 倍率，手机端可点「保存到相册」并长按图片存入系统相册
 - **头像**：内置默认头像可选，也支持上传自定义图片
+- **消息类型**：对方（蓝）/ 我方（绿）/ 分隔（带分割线、纯文字）——分隔用于「19:00」「十分钟后」这类时间 / 间隔提示，字体、字号、字重、线与文字间距、线长等均可配（见 CONFIG.divider*）
 - **兼容性**：已在 macOS 与 Windows 的 Chrome 上测试通过
 
 - **Faithful reproduction of the in-game SMS UI**: colors, envelope icon, beveled bubbles with tails, dark-red small text, underlines, gradient background and other details all follow the current *Cyberpunk 2077* in-game messaging style
 - **Bilingual (Chinese / English)**: UI text, canvas header (消息 / MESSAGES), fonts and default chat messages all switch with the selected language
   - Chinese: Microsoft YaHei / PingFang (header and username)
-  - English: Blender Pro (header and username; falls back to Rajdhani if missing)
+  - English: Blender Pro (header; falls back to Rajdhani if missing); Rajdhani (user name, broader character coverage, auto-uppercase in English mode)
   - Dark-red small text: Play
-  - Western letters in message bubbles: Rajdhani (weight 500; CJK text stays regular)
+  - Western letters in message bubbles: Rajdhani (weight configurable via `msgWeight`; CJK text stays regular)
 - **Extensive configurable fields**: `CONFIG` / `PALETTE` at the top of the script cover sizes, spacing, font sizes, weights, margins and colors; font sizes and weights can be configured independently for Chinese and English
 - **Single file, zero dependencies**: no installation or build needed — just open it in a browser; export supports 1x / 2x / 3x scale, and on mobile "Save to Photos" + press-and-hold stores the image straight to the photo library
 - **Avatars**: choose from the bundled default avatars, or upload your own image
+- **Message types**: Other (blue) / Me (green) / Divider (with lines, or text-only) — dividers are for "19:00" / "ten minutes later" style separators; font, size, weight, line-to-text gap, line length etc. are all configurable (see CONFIG.divider*)
 - **Compatibility**: tested on Chrome for macOS and Windows
 
 ## 内置头像 / Built-in Avatars
@@ -126,9 +128,10 @@ The repository bundles 12 character avatars (all are `avatar-*.png` files in the
 | 头像 | 显示宽度 `avatarW`、左边距 `avatarMarginX`、顶边距 `avatarMarginY` |
 | 页头 | 标题/用户名中文字号与英文字号（`hdrTitleSizeEn` / `hdrUserNameSizeEn`）、字重、信封图标、箭头、下划线、暗红细字 `hdrCode` / `hdrVer` |
 | 气泡 | 字号 `msgFontSize`、西文字重 `msgWeight`（中文保持常规）、英文垂直拉长 `msgStretchEn`、行高、内边距、最大宽度、斜角 `bevel`、尾巴 `tailFront` / `tailSlope` / `tailDrop`、气泡间隔 |
+| 分隔 | 字体 `dividerFont`、字号 `dividerFontSize`、字重 `dividerWeight`、线与文字间距 `dividerLineGapX`、线长 `dividerLineLen`（0=不画线）、线粗 `dividerLineW`、上下留白 `dividerPadY` |
 | 配色 | `PALETTE` 中的全部颜色 |
 | 默认消息 | `DEFAULT_MESSAGES`（中文、英文两套，可自行替换为任意内容） |
-| 字体 | `fontFamily`、`fontHeaderZh`、`fontHeaderEn`、`fontMeta` |
+| 字体 | `fontFamily`、`fontHeaderZh`、`fontHeaderEn`、`fontUserNameEn`、`fontMeta` |
 
 All adjustable parameters are centralized in `CONFIG` and `PALETTE` at the top of the `<script>` section in `cyber-message.html`, with detailed comments. Main areas:
 
@@ -138,9 +141,10 @@ All adjustable parameters are centralized in `CONFIG` and `PALETTE` at the top o
 | Avatar | Display width `avatarW`, left margin `avatarMarginX`, top margin `avatarMarginY` |
 | Header | Chinese and English font sizes for the title / username (`hdrTitleSizeEn` / `hdrUserNameSizeEn`), font weight, envelope icon, arrow, underline, dark-red small text `hdrCode` / `hdrVer` |
 | Bubbles | Font size `msgFontSize`, Western-text weight `msgWeight` (CJK stays regular), English vertical stretch `msgStretchEn`, line height, padding, max width, bevel `bevel`, tail `tailFront` / `tailSlope` / `tailDrop`, bubble spacing |
+| Divider | Font `dividerFont`, size `dividerFontSize`, weight `dividerWeight`, line-to-text gap `dividerLineGapX`, line length `dividerLineLen` (0 = no lines), line width `dividerLineW`, vertical padding `dividerPadY` |
 | Colors | All colors in `PALETTE` |
 | Default messages | `DEFAULT_MESSAGES` (separate Chinese and English sets, freely replaceable with any content) |
-| Fonts | `fontFamily`, `fontHeaderZh`, `fontHeaderEn`, `fontMeta` |
+| Fonts | `fontFamily`, `fontHeaderZh`, `fontHeaderEn`, `fontUserNameEn`, `fontMeta` |
 
 ## 布局与兼容性 / Layout & Compatibility
 
@@ -160,11 +164,11 @@ Elements are connected through relative spacing parameters (e.g. `hdrCodeToIconG
 
 ## 字体说明 / Fonts
 
-- **Rajdhani / Play**：通过 Google Fonts 在线加载，需要联网；离线或加载失败时自动回退系统字体
-- **Blender Pro**：商用字体，随仓库提供（仅限本非商业粉丝项目使用，商业用途需自行获取授权）
+- **Rajdhani / Play**：通过 Google Fonts 在线加载，需要联网；离线或加载失败时自动回退系统字体。Rajdhani 用于英文用户名与消息体西文，Play 用于暗红细字
+- **Blender Pro**：商用字体，仅用于英文页头（MESSAGES）。随仓库提供（仅限本非商业粉丝项目使用，商业用途需自行获取授权）
 
-- **Rajdhani / Play**: loaded online from Google Fonts — an internet connection is required; falls back to system fonts when offline or if loading fails
-- **Blender Pro**: a commercial font, bundled with the repository for non-commercial fan use only (commercial use requires obtaining a license)
+- **Rajdhani / Play**: loaded online from Google Fonts — an internet connection is required; falls back to system fonts when offline or if loading fails. Rajdhani is used for the English user name and Western text in message bubbles; Play for the dark-red meta text
+- **Blender Pro**: a commercial font used for the English header (MESSAGES) only. Bundled with the repository for non-commercial fan use only (commercial use requires obtaining a license)
 
 ## 已知限制 / Known Limitations
 
