@@ -8,5 +8,5 @@
 .omo/
 .playwright-mcp/
 
-# 测试截图
+# 测试用图片（qa- 前缀）
 qa-*.png

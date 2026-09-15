@@ -180,6 +180,46 @@
       text-decoration: underline
     }
 
+    .img-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px 10px;
+      margin-top: 6px;
+    }
+
+    .img-row .thumb {
+      width: 64px;
+      height: 64px;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 1px solid var(--line);
+      background: #0b0b16;
+    }
+
+    .img-row .upload-link {
+      margin-top: 0
+    }
+
+    .img-row .img-size {
+      width: auto;
+      flex: none;
+      padding: 4px 6px;
+      font-size: 12px;
+    }
+
+    .img-row .img-remove {
+      color: var(--red)
+    }
+
+    .img-row .img-hint {
+      flex-basis: 100%;
+      font-size: 11px;
+      line-height: 1.5;
+      letter-spacing: .5px;
+      color: #8fa3bd;
+    }
+
     .msg {
       border: 1px solid var(--line);
       border-radius: 4px;
@@ -345,6 +385,7 @@
         </select>
         <label class="upload-link" for="fileAvatar" data-i18n="avatarCustom">上传自定义图片…</label>
         <input id="fileAvatar" type="file" accept="image/*" hidden />
+        <input id="fileMsgImg" type="file" accept="image/*" hidden />
       </div>
 
       <div class="field">
@@ -441,13 +482,16 @@
       msgFontSize: 28,
       msgWeight: 600,              // 西文字重（Rajdhani；中英文通用）—— 中文/CJK 固定常规 400，见 splitRuns
       msgStretchEn: 1.2,             // 英文消息文字垂直拉长倍率（1 = 原始；>1 纵向拉长，如 1.2 = 拉长 20%；仅英文生效）
+      msgImgSmallRatio: 0.8,       // 「小」档图片宽度 = 气泡最大宽度 × 此比例（大 = 内容区全宽；中 = 气泡最大宽度；高度均随比例缩放）
+      msgImgMaxH: 1200,             // 气泡内图片最大高度（px；0 = 不限制；等比缩放不拉伸）
+      msgImgGapY: 20,              // 图片与其上方文字的间距（px；图片贴气泡内底边，底部留白复用 bubblePadY）
       msgLineHeight: 42,           // 多行时行与行基线间距
       bubblePadX: 16,
       bubblePadY: 16,              // 单行文字上下留白（气泡最小高度 = 字号字形高度 + 2×此值）
       fontAscent: 24,             // 28px 字体的字形基线以上高度（兜底值，会优先用浏览器实测）
       fontDescent: 8,             // 28px 字体的字形基线以下高度（兜底值）
       gapBetween: 10,            // 气泡间隔
-      maxBubbleRatio: 0.72,      // 气泡最大宽度 = 中间区宽度 × 此比例
+      maxBubbleRatio: 0.75,      // 气泡最大宽度 = 中间区宽度 × 此比例
       bevel: 14,                 // 斜角切角高度（左上/右下斜边）
       tailDrop: 10,              // 尾巴垂直下落高度（px）：尾巴尖端低于气泡底边的距离（原固定等于 bevel，现独立可调）
       tailFront: 15,             // 尾巴前沿距气泡左壁（镜像后为右壁）
@@ -508,6 +552,7 @@
     const msgListEl = $('msgList');
     const selAvatar = $('selAvatar');
     const fileInput = $('fileAvatar');
+    const msgImgInput = $('fileMsgImg');
     // 默认聊天记录（中/英各一套）：初始化按语言填充；切换语言时，仍是旧语言默认原文的消息自动换成新语言版本，改过的消息保持原样
     const DEFAULT_MESSAGES = {
       zh: [
@@ -790,12 +835,33 @@
           cursor += dh + CONFIG.gapBetween;
           continue;
         }
-        const lines = wrapLines(m.text, inner);
+        const hasText = String(m.text).trim() !== '';
+        const lines = hasText ? wrapLines(m.text, inner) : [];
         let w = 0;
         for (const ln of lines) w = Math.max(w, measureStyledLine(ln));
-        const bw = Math.min(maxW, Math.max(w + CONFIG.bubblePadX * 2, CONFIG.minBubbleW));
-        const bh = CONFIG.bubblePadY * 2 + tAsc + tDesc + Math.max(0, lines.length - 1) * lineH;
-        items.push({ side: m.side, lines, y: cursor, w: bw, h: bh, ascent: tAsc });
+        // 图片：等比缩放（不拉伸、小图不放大）；宽度档位——大 = 内容区全宽 / 中 = 气泡最大宽 / 小 = 气泡最大宽 × msgImgSmallRatio
+        let img = null;
+        let imgCap = maxW;
+        if (m.img) {
+          const iw = m.img.naturalWidth || m.img.width;
+          const ih = m.img.naturalHeight || m.img.height;
+          if (iw && ih) {
+            const tier = m.imgSize || 'medium';
+            if (tier === 'large') imgCap = cw;
+            const frac = tier === 'small' ? CONFIG.msgImgSmallRatio : 1;
+            const maxImgW = imgCap * frac - CONFIG.bubblePadX * 2;   // 气泡内左右各留 bubblePadX
+            const caps = [1, maxImgW / iw];
+            if (CONFIG.msgImgMaxH > 0) caps.push(CONFIG.msgImgMaxH / ih);
+            const s = Math.min(...caps);
+            img = { image: m.img, w: iw * s, h: ih * s };
+          }
+        }
+        let bw = Math.min(imgCap, Math.max(w + CONFIG.bubblePadX * 2, CONFIG.minBubbleW));
+        if (img) bw = Math.max(bw, img.w + CONFIG.bubblePadX * 2);
+        const textH = hasText ? tAsc + tDesc + Math.max(0, lines.length - 1) * lineH : 0;
+        const imgBlockH = img ? img.h + (hasText ? CONFIG.msgImgGapY : 0) : 0;
+        const bh = CONFIG.bubblePadY * 2 + textH + imgBlockH;
+        items.push({ side: m.side, lines, y: cursor, w: bw, h: bh, ascent: tAsc, img });
         cursor += bh + CONFIG.tailDrop + CONFIG.gapBetween;
       }
       if (!items.length) {
@@ -951,6 +1017,10 @@
         const base = it.y + CONFIG.bubblePadY + it.ascent;
         const lineH = CONFIG.msgLineHeight * msgStretch();
         it.lines.forEach((ln, i) => drawStyledLine(ln, x + CONFIG.bubblePadX, base + i * lineH));
+        if (it.img) {
+          // 图片贴气泡内底边，与上方文字留出 msgImgGapY 间距（纯图片消息则只有上下留白）
+          ctx.drawImage(it.img.image, x + CONFIG.bubblePadX, it.y + it.h - CONFIG.bubblePadY - it.img.h, it.img.w, it.img.h);
+        }
         ctx.restore();
       }
     }
@@ -1014,7 +1084,7 @@
           ]);
         } catch (e) { /* 字体不可用时静默回退 */ }
       }
-      const msgs = messages.filter((m) => String(m.text).trim() !== '');
+      const msgs = messages.filter((m) => String(m.text).trim() !== '' || m.img);
       const name = userNameText();
       const scale = Number($('selScale').value);
 
@@ -1059,6 +1129,13 @@
         sideMe: '我方 · 绿',
         sideDivider: '分隔 · 分割线',
         sideDividerText: '分隔 · 纯文字',
+        addImg: '＋ 添加图片',
+        changeImg: '更换图片',
+        removeImg: '移除图片',
+        imgLarge: '大',
+        imgMedium: '中',
+        imgSmall: '小',
+        imgHint: '大 = 内容区宽度，中 = 气泡最大宽度，小 = 气泡最大宽度 × {P}%；等比缩放、不拉伸，高度随原图比例，最高不超过 {H}px',
         delTitle: '删除',
         msgPh: '输入消息内容…',
         canvasPlaceholder: '（请输入聊天消息）',
@@ -1087,6 +1164,13 @@
         sideMe: 'Me · Green',
         sideDivider: 'Divider · Line',
         sideDividerText: 'Divider · Text',
+        addImg: '+ Add image',
+        changeImg: 'Change image',
+        removeImg: 'Remove image',
+        imgLarge: 'Large',
+        imgMedium: 'Medium',
+        imgSmall: 'Small',
+        imgHint: 'Large = content width, Medium = max bubble width, Small = max bubble width × {P}%; proportional scaling, never stretched — height follows the source ratio, capped at {H}px',
         delTitle: 'Delete',
         msgPh: 'Type a message…',
         canvasPlaceholder: '(Enter chat messages)',
@@ -1148,28 +1232,91 @@
       schedule();
     });
     msgListEl.addEventListener('change', (e) => {
-      const sel = e.target.closest('.side');
       const row = e.target.closest('.msg');
-      if (!sel || !row) return;
+      if (!row) return;
+      const sizeSel = e.target.closest('.img-size');   // 图片尺寸档位（大 / 中 / 小）
+      if (sizeSel) {
+        const m = findMsg(row);
+        if (m) m.imgSize = sizeSel.value;
+        schedule();
+        return;
+      }
+      const sel = e.target.closest('.side');
+      if (!sel) return;
       const m = findMsg(row);
       if (m) m.side = sel.value;
+      const imgRow = row.querySelector('.img-row');   // 分隔类型不显示图片控件
+      if (imgRow) imgRow.style.display = isDivider(sel.value) ? 'none' : '';
       schedule();
     });
     msgListEl.addEventListener('click', (e) => {
-      const btn = e.target.closest('.del');
       const row = e.target.closest('.msg');
-      if (!btn || !row) return;
-      row.remove();
-      const m = findMsg(row);
-      if (m) messages.splice(messages.indexOf(m), 1);
-      schedule();
+      if (!row) return;
+      if (e.target.closest('.del')) {
+        row.remove();
+        const m = findMsg(row);
+        if (m) messages.splice(messages.indexOf(m), 1);
+        schedule();
+        return;
+      }
+      if (e.target.closest('.img-add, .img-change')) {
+        pendingMsgId = Number(row.dataset.id);   // 记录目标消息，选择文件后写入
+        msgImgInput.click();
+        return;
+      }
+      if (e.target.closest('.img-remove')) {
+        const m = findMsg(row);
+        if (m) { m.img = null; m.imgSrc = null; }
+        rebuildRows();
+        schedule();
+      }
     });
+    // 消息图片上传：共用隐藏 input（点击行内「添加/更换图片」时记录目标消息 id）
+    let pendingMsgId = null;
+    msgImgInput.addEventListener('cancel', () => { pendingMsgId = null; });
+    msgImgInput.onchange = () => {
+      const f = msgImgInput.files[0];
+      msgImgInput.value = '';   // 允许重复选择同一文件
+      if (!f || pendingMsgId == null) { pendingMsgId = null; return; }
+      const fr = new FileReader();
+      fr.onload = async () => {
+        const im = await loadImage(fr.result);   // data URL，不会污染画布
+        const m = messages.find((x) => x.id === pendingMsgId);
+        if (m && im) { m.imgSrc = fr.result; m.img = im; if (!m.imgSize) m.imgSize = 'medium'; }
+        pendingMsgId = null;
+        rebuildRows();
+        schedule();
+      };
+      fr.readAsDataURL(f);
+    };
 
     function findMsg(row) {
       const id = Number(row.dataset.id);
       return messages.find((m) => m.id === id);
     }
 
+    // 图片缩放提示：三档宽度比例（小档百分比取 CONFIG.msgImgSmallRatio）+ 高度上限（CONFIG.msgImgMaxH）
+    function imgHintText() {
+      return L10N[LANG].imgHint
+        .replace('{P}', Math.round(CONFIG.msgImgSmallRatio * 100))
+        .replace('{H}', CONFIG.msgImgMaxH);
+    }
+    // 消息行内的图片控件：无图 =「＋ 添加图片」；有图 = 缩略图 + 大/中/小 + 更换 / 移除 + 缩放提示
+    function imgRowHtml(m) {
+      const L = L10N[LANG];
+      if (m.imgSrc) {
+        return '<img class="thumb" src="' + m.imgSrc + '" alt="" />' +
+          '<select class="img-size">' +
+          '<option value="large">' + L.imgLarge + '</option>' +
+          '<option value="medium">' + L.imgMedium + '</option>' +
+          '<option value="small">' + L.imgSmall + '</option>' +
+          '</select>' +
+          '<span class="upload-link img-change">' + L.changeImg + '</span>' +
+          '<span class="upload-link img-remove">' + L.removeImg + '</span>' +
+          '<span class="img-hint">' + imgHintText() + '</span>';
+      }
+      return '<span class="upload-link img-add">' + L.addImg + '</span>';
+    }
     function addRow(m) {
       m = m || { side: 'other', text: '' };
       if (m.id == null) m.id = ++msgSeq;
@@ -1185,9 +1332,12 @@
         '</select>' +
         '<button class="del" title="' + L10N[LANG].delTitle + '">✕</button>' +
         '</div>' +
-        '<textarea class="text" rows="3" placeholder="' + L10N[LANG].msgPh + '"></textarea>';
+        '<textarea class="text" rows="3" placeholder="' + L10N[LANG].msgPh + '"></textarea>' +
+        '<div class="img-row"' + (isDivider(m.side) ? ' style="display:none"' : '') + '>' + imgRowHtml(m) + '</div>';
       row.querySelector('.side').value = m.side;
       row.querySelector('.text').value = m.text;
+      const sizeSel = row.querySelector('.img-size');
+      if (sizeSel) sizeSel.value = m.imgSize || 'medium';
       msgListEl.appendChild(row);
     }
     // 语言切换后重建全部消息行（事件委托基于 row.dataset.id，重建不影响交互）

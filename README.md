@@ -22,6 +22,14 @@ Below are the UI and exported results in Chinese / English (left: Chinese, right
   <img src="record-en.png" width="42%" alt="English exported record" />
 </p>
 
+<p align="center">
+  <img src="图片三种大小演示.png" width="30%" alt="消息图片大 / 中 / 小三种宽度" />
+</p>
+
+消息内可附带图片，宽度分大 / 中 / 小三档（等比缩放、不拉伸，高度随原图比例）：
+
+Images can be attached to any message in three width tiers (large / medium / small); scaled proportionally and never stretched — height follows the source aspect ratio.
+
 ## 合作说明 / Credits
 
 本项目由两位创作者共同完成：
@@ -46,6 +54,7 @@ This project is a joint effort by two creators:
 - **单文件、零依赖**：无需安装、无需构建，浏览器打开即用；导出支持 1x / 2x / 3x 倍率，手机端可点「保存到相册」并长按图片存入系统相册
 - **头像**：内置默认头像可选，也支持上传自定义图片
 - **消息类型**：对方（蓝）/ 我方（绿）/ 分隔（带分割线、纯文字）——分隔用于「19:00」「十分钟后」这类时间 / 间隔提示，字体、字号、字重、线与文字间距、线长等均可配（见 CONFIG.divider*）
+- **消息图片**：任意消息可附带一张图片，宽度分大 / 中 / 小三档（大 = 内容区全宽、中 = 气泡最大宽度、小 = 气泡最大宽度 × 80%），等比缩放、不拉伸；高度随原图比例（高度上限 1200px）
 - **兼容性**：已在 macOS 与 Windows 的 Chrome 上测试通过
 
 - **Faithful reproduction of the in-game SMS UI**: colors, envelope icon, beveled bubbles with tails, dark-red small text, underlines, gradient background and other details all follow the current *Cyberpunk 2077* in-game messaging style
@@ -58,6 +67,7 @@ This project is a joint effort by two creators:
 - **Single file, zero dependencies**: no installation or build needed — just open it in a browser; export supports 1x / 2x / 3x scale, and on mobile "Save to Photos" + press-and-hold stores the image straight to the photo library
 - **Avatars**: choose from the bundled default avatars, or upload your own image
 - **Message types**: Other (blue) / Me (green) / Divider (with lines, or text-only) — dividers are for "19:00" / "ten minutes later" style separators; font, size, weight, line-to-text gap, line length etc. are all configurable (see CONFIG.divider*)
+- **Message images**: attach an image to any message — three width tiers (Large = full content width, Medium = max bubble width, Small = max bubble width × 80%), scaled proportionally and never stretched; height follows the source aspect ratio (max height 1200px)
 - **Compatibility**: tested on Chrome for macOS and Windows
 
 ## 内置头像 / Built-in Avatars
@@ -128,6 +138,7 @@ The repository bundles 12 character avatars (all are `avatar-*.png` files in the
 | 头像 | 显示宽度 `avatarW`、左边距 `avatarMarginX`、顶边距 `avatarMarginY` |
 | 页头 | 标题/用户名中文字号与英文字号（`hdrTitleSizeEn` / `hdrUserNameSizeEn`）、字重、信封图标、箭头、下划线、暗红细字 `hdrCode` / `hdrVer` |
 | 气泡 | 字号 `msgFontSize`、西文字重 `msgWeight`（中文保持常规）、英文垂直拉长 `msgStretchEn`、行高、内边距、最大宽度、斜角 `bevel`、尾巴 `tailFront` / `tailSlope` / `tailDrop`、气泡间隔 |
+| 消息图片 | 小档宽度比例 `msgImgSmallRatio`、高度上限 `msgImgMaxH`（0 = 不限）、图文间距 `msgImgGapY` |
 | 分隔 | 字体 `dividerFont`、字号 `dividerFontSize`、字重 `dividerWeight`、线与文字间距 `dividerLineGapX`、线长 `dividerLineLen`（0=不画线）、线粗 `dividerLineW`、上下留白 `dividerPadY` |
 | 配色 | `PALETTE` 中的全部颜色 |
 | 默认消息 | `DEFAULT_MESSAGES`（中文、英文两套，可自行替换为任意内容） |
@@ -141,6 +152,7 @@ All adjustable parameters are centralized in `CONFIG` and `PALETTE` at the top o
 | Avatar | Display width `avatarW`, left margin `avatarMarginX`, top margin `avatarMarginY` |
 | Header | Chinese and English font sizes for the title / username (`hdrTitleSizeEn` / `hdrUserNameSizeEn`), font weight, envelope icon, arrow, underline, dark-red small text `hdrCode` / `hdrVer` |
 | Bubbles | Font size `msgFontSize`, Western-text weight `msgWeight` (CJK stays regular), English vertical stretch `msgStretchEn`, line height, padding, max width, bevel `bevel`, tail `tailFront` / `tailSlope` / `tailDrop`, bubble spacing |
+| Message images | Small-tier width ratio `msgImgSmallRatio`, max height `msgImgMaxH` (0 = unlimited), image-to-text gap `msgImgGapY` |
 | Divider | Font `dividerFont`, size `dividerFontSize`, weight `dividerWeight`, line-to-text gap `dividerLineGapX`, line length `dividerLineLen` (0 = no lines), line width `dividerLineW`, vertical padding `dividerPadY` |
 | Colors | All colors in `PALETTE` |
 | Default messages | `DEFAULT_MESSAGES` (separate Chinese and English sets, freely replaceable with any content) |
@@ -172,12 +184,12 @@ Elements are connected through relative spacing parameters (e.g. `hdrCodeToIconG
 
 ## 已知限制 / Known Limitations
 
-- 消息内容仅支持纯文字，暂不支持发送图片 / 表情包
+- 每条消息最多附带一张图片；暂不支持表情包 / 动图
 - 离线或 Google Fonts 不可用时，字体回退为系统字体，观感会与预期效果有差异，可以通过引用字体文件解决
 - 除 macOS / Windows 的 Chrome 外，其他浏览器与系统未做系统测试（欢迎反馈问题）
 - 通过聊天软件（如微信）转发导出的图片可能被二次压缩（转为 JPG、尺寸缩小），且没有明显提示；详见下方「踩坑记录」一节
 
-- Message content is text-only; images / stickers as messages are not supported yet
+- At most one image per message; stickers / animated images are not supported
 - When offline or when Google Fonts is unavailable, fonts fall back to system fonts and the look may differ from the intended design; this can be solved by referencing local font files
 - Apart from Chrome on macOS / Windows, other browsers and systems have not been systematically tested (feedback is welcome)
 - Images forwarded through messaging apps (e.g. WeChat) may be recompressed (converted to JPG and downscaled) with no obvious warning; see the "Pitfall" section below
