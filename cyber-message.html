@@ -839,7 +839,7 @@
         const lines = hasText ? wrapLines(m.text, inner) : [];
         let w = 0;
         for (const ln of lines) w = Math.max(w, measureStyledLine(ln));
-        // 图片：等比缩放（不拉伸、小图不放大）；宽度档位——大 = 内容区全宽 / 中 = 气泡最大宽 / 小 = 气泡最大宽 × msgImgSmallRatio
+        // 图片：等比缩放（不拉伸；统一缩放到档位宽度——小图放大、大图缩小）；宽度档位——大 = 内容区全宽 / 中 = 气泡最大宽 / 小 = 气泡最大宽 × msgImgSmallRatio
         let img = null;
         let imgCap = maxW;
         if (m.img) {
@@ -850,8 +850,8 @@
             if (tier === 'large') imgCap = cw;
             const frac = tier === 'small' ? CONFIG.msgImgSmallRatio : 1;
             const maxImgW = imgCap * frac - CONFIG.bubblePadX * 2;   // 气泡内左右各留 bubblePadX
-            const caps = [1, maxImgW / iw];
-            if (CONFIG.msgImgMaxH > 0) caps.push(CONFIG.msgImgMaxH / ih);
+            const caps = [maxImgW / iw];                                    // 宽度档位（等比缩放到档位宽度）
+            if (CONFIG.msgImgMaxH > 0) caps.push(CONFIG.msgImgMaxH / ih);   // 高度上限，与宽度约束取小者
             const s = Math.min(...caps);
             img = { image: m.img, w: iw * s, h: ih * s };
           }
@@ -1135,7 +1135,7 @@
         imgLarge: '大',
         imgMedium: '中',
         imgSmall: '小',
-        imgHint: '大 = 内容区宽度，中 = 气泡最大宽度，小 = 气泡最大宽度 × {P}%；等比缩放、不拉伸，高度随原图比例，最高不超过 {H}px',
+        imgHint: '大 = 内容区宽度，中 = 气泡最大宽度，小 = 气泡最大宽度 × {P}%；图片等比缩放到所选档位宽度（小图放大、不拉伸），高度随原图比例，最高不超过 {H}px',
         delTitle: '删除',
         msgPh: '输入消息内容…',
         canvasPlaceholder: '（请输入聊天消息）',
@@ -1170,7 +1170,7 @@
         imgLarge: 'Large',
         imgMedium: 'Medium',
         imgSmall: 'Small',
-        imgHint: 'Large = content width, Medium = max bubble width, Small = max bubble width × {P}%; proportional scaling, never stretched — height follows the source ratio, capped at {H}px',
+        imgHint: 'Large = content width, Medium = max bubble width, Small = max bubble width × {P}%; images scale proportionally to the selected tier width (small images enlarged, never stretched); height follows the source ratio, capped at {H}px',
         delTitle: 'Delete',
         msgPh: 'Type a message…',
         canvasPlaceholder: '(Enter chat messages)',

@@ -26,9 +26,9 @@ Below are the UI and exported results in Chinese / English (left: Chinese, right
   <img src="图片三种大小演示.png" width="30%" alt="消息图片大 / 中 / 小三种宽度" />
 </p>
 
-消息内可附带图片，宽度分大 / 中 / 小三档（等比缩放、不拉伸，高度随原图比例）：
+消息内可附带图片，宽度分大 / 中 / 小三档（等比缩放到所选档位宽度、不拉伸，高度随原图比例）：
 
-Images can be attached to any message in three width tiers (large / medium / small); scaled proportionally and never stretched — height follows the source aspect ratio.
+Images can be attached to any message in three width tiers (large / medium / small); scaled proportionally to the selected tier width and never stretched — height follows the source aspect ratio.
 
 ## 合作说明 / Credits
 
@@ -54,7 +54,7 @@ This project is a joint effort by two creators:
 - **单文件、零依赖**：无需安装、无需构建，浏览器打开即用；导出支持 1x / 2x / 3x 倍率，手机端可点「保存到相册」并长按图片存入系统相册
 - **头像**：内置默认头像可选，也支持上传自定义图片
 - **消息类型**：对方（蓝）/ 我方（绿）/ 分隔（带分割线、纯文字）——分隔用于「19:00」「十分钟后」这类时间 / 间隔提示，字体、字号、字重、线与文字间距、线长等均可配（见 CONFIG.divider*）
-- **消息图片**：任意消息可附带一张图片，宽度分大 / 中 / 小三档（大 = 内容区全宽、中 = 气泡最大宽度、小 = 气泡最大宽度 × 80%），等比缩放、不拉伸；高度随原图比例（高度上限 1200px）
+- **消息图片**：任意消息可附带一张图片，宽度分大 / 中 / 小三档（大 = 内容区宽度、中 = 气泡最大宽度、小 = 气泡最大宽度 × 80%）；图片等比缩放到所选档位宽度（小图放大、不拉伸），高度随原图比例（高度上限 1200px）
 - **兼容性**：已在 macOS 与 Windows 的 Chrome 上测试通过
 
 - **Faithful reproduction of the in-game SMS UI**: colors, envelope icon, beveled bubbles with tails, dark-red small text, underlines, gradient background and other details all follow the current *Cyberpunk 2077* in-game messaging style
@@ -67,7 +67,7 @@ This project is a joint effort by two creators:
 - **Single file, zero dependencies**: no installation or build needed — just open it in a browser; export supports 1x / 2x / 3x scale, and on mobile "Save to Photos" + press-and-hold stores the image straight to the photo library
 - **Avatars**: choose from the bundled default avatars, or upload your own image
 - **Message types**: Other (blue) / Me (green) / Divider (with lines, or text-only) — dividers are for "19:00" / "ten minutes later" style separators; font, size, weight, line-to-text gap, line length etc. are all configurable (see CONFIG.divider*)
-- **Message images**: attach an image to any message — three width tiers (Large = full content width, Medium = max bubble width, Small = max bubble width × 80%), scaled proportionally and never stretched; height follows the source aspect ratio (max height 1200px)
+- **Message images**: attach an image to any message — three width tiers (Large = content width, Medium = max bubble width, Small = max bubble width × 80%); images scale proportionally to the selected tier width (small images enlarged, never stretched); height follows the source aspect ratio (max height 1200px)
 - **Compatibility**: tested on Chrome for macOS and Windows
 
 ## 内置头像 / Built-in Avatars
