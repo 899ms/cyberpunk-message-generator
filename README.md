@@ -72,34 +72,40 @@ This project is a joint effort by two creators:
 
 ## 内置头像 / Built-in Avatars
 
-目前内置 12 个角色头像（均为同目录 `avatar-*.png` 文件，替换同名文件即可换图；也可上传自定义图片）：
+目前内置 15 个角色头像（均为同目录 `avatar-*.png` 文件，替换同名文件即可换图；也可上传自定义图片）：
 
 - 朱迪 · 阿尔瓦雷兹（Judy）— `avatar-Judy.png`（默认）
 - 帕南（Panam）— `avatar-Panam.png`
 - 克莱尔（Claire）— `avatar-Claire.png`
 - 德拉曼（Delamain）— `avatar-Delamain.png`
+- 艾芙琳 · 帕克（Evelyn）— `avatar-Evelyn.png`
 - 杰克 · 威尔斯（Jackie）— `avatar-Jackie.png`
 - 克里（Kerry）— `avatar-Kerry.png`
 - 米契（Mitch）— `avatar-Mitch.png`
 - 瑞吉娜（Regina）— `avatar-Regina.png`
 - 瑞弗（River）— `avatar-River.png`
+- 索尔 · 布赖特（Saul）— `avatar-Saul.png`
 - 竹村（Take）— `avatar-Take.png`
 - 未知角色（Unknown）— `avatar-Unknown.png`
+- 维克多 · 维克托（Victor）— `avatar-Victor.png`
 - 威尔斯妈妈（WellesMama）— `avatar-WellesMama.png`
 
-The repository bundles 12 character avatars (all are `avatar-*.png` files in the same folder — replace a file to change it, or upload your own image):
+The repository bundles 15 character avatars (all are `avatar-*.png` files in the same folder — replace a file to change it, or upload your own image):
 
 - Judy Alvarez — `avatar-Judy.png` (default)
 - Panam Palmer — `avatar-Panam.png`
 - Claire Russell — `avatar-Claire.png`
 - Delamain — `avatar-Delamain.png`
+- Evelyn Parker — `avatar-Evelyn.png`
 - Jackie Welles — `avatar-Jackie.png`
 - Kerry Eurodyne — `avatar-Kerry.png`
 - Mitch Anderson — `avatar-Mitch.png`
 - Regina Jones — `avatar-Regina.png`
 - River Ward — `avatar-River.png`
+- Saul Bright — `avatar-Saul.png`
 - Goro Takemura (Take) — `avatar-Take.png`
 - Unknown — `avatar-Unknown.png`
+- Viktor Vektor — `avatar-Victor.png`
 - Mama Welles — `avatar-WellesMama.png`
 
 ## 使用方法 / Usage
