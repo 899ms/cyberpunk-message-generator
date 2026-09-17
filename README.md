@@ -53,7 +53,7 @@ This project is a joint effort by two creators:
 - **大量可配置字段**：脚本顶部 `CONFIG` / `PALETTE` 涵盖尺寸、间距、字号、字重、边距与颜色；中英文的字号、字重均可独立配置
 - **单文件、零依赖**：无需安装、无需构建，浏览器打开即用；导出支持 1x / 2x / 3x 倍率，手机端可点「保存到相册」并长按图片存入系统相册
 - **头像**：内置默认头像可选，也支持上传自定义图片
-- **消息类型**：对方（蓝）/ 我方（绿）/ 分隔（带分割线、纯文字）——分隔用于「19:00」「十分钟后」这类时间 / 间隔提示，字体、字号、字重、线与文字间距、线长等均可配（见 CONFIG.divider*）
+- **消息类型**：对方（蓝）/ 我方（绿）/ 分隔（带分割线、纯文字）——分隔用于「19:00」「十分钟后」这类时间 / 间隔提示，字体、字号、字重、线与文字间距、线长等均可配（见 CONFIG.divider*）；分隔块间距可逐条选择窄 / 中 / 宽三档
 - **消息图片**：任意消息可附带一张图片，宽度分大 / 中 / 小三档（大 = 内容区宽度、中 = 气泡最大宽度、小 = 气泡最大宽度 × 80%）；图片等比缩放到所选档位宽度（小图放大、不拉伸），高度随原图比例（高度上限 1200px）
 - **兼容性**：已在 macOS 与 Windows 的 Chrome 上测试通过
 
@@ -66,7 +66,7 @@ This project is a joint effort by two creators:
 - **Extensive configurable fields**: `CONFIG` / `PALETTE` at the top of the script cover sizes, spacing, font sizes, weights, margins and colors; font sizes and weights can be configured independently for Chinese and English
 - **Single file, zero dependencies**: no installation or build needed — just open it in a browser; export supports 1x / 2x / 3x scale, and on mobile "Save to Photos" + press-and-hold stores the image straight to the photo library
 - **Avatars**: choose from the bundled default avatars, or upload your own image
-- **Message types**: Other (blue) / Me (green) / Divider (with lines, or text-only) — dividers are for "19:00" / "ten minutes later" style separators; font, size, weight, line-to-text gap, line length etc. are all configurable (see CONFIG.divider*)
+- **Message types**: Other (blue) / Me (green) / Divider (with lines, or text-only) — dividers are for "19:00" / "ten minutes later" style separators; font, size, weight, line-to-text gap, line length etc. are all configurable (see CONFIG.divider*); divider spacing is selectable per divider (narrow / medium / wide)
 - **Message images**: attach an image to any message — three width tiers (Large = content width, Medium = max bubble width, Small = max bubble width × 80%); images scale proportionally to the selected tier width (small images enlarged, never stretched); height follows the source aspect ratio (max height 1200px)
 - **Compatibility**: tested on Chrome for macOS and Windows
 
@@ -145,7 +145,7 @@ The repository bundles 15 character avatars (all are `avatar-*.png` files in the
 | 页头 | 标题/用户名中文字号与英文字号（`hdrTitleSizeEn` / `hdrUserNameSizeEn`）、字重、信封图标、箭头、下划线、暗红细字 `hdrCode` / `hdrVer` |
 | 气泡 | 字号 `msgFontSize`、西文字重 `msgWeight`（中文保持常规）、英文垂直拉长 `msgStretchEn`、行高、内边距、最大宽度、斜角 `bevel`、尾巴 `tailFront` / `tailSlope` / `tailDrop`、气泡间隔 |
 | 消息图片 | 小档宽度比例 `msgImgSmallRatio`、高度上限 `msgImgMaxH`（0 = 不限）、图文间距 `msgImgGapY` |
-| 分隔 | 字体 `dividerFont`、字号 `dividerFontSize`、字重 `dividerWeight`、线与文字间距 `dividerLineGapX`、线长 `dividerLineLen`（0=不画线）、线粗 `dividerLineW`、上下留白 `dividerPadY` |
+| 分隔 | 字体 `dividerFont`、字号 `dividerFontSize`、字重 `dividerWeight`、线与文字间距 `dividerLineGapX`、线长 `dividerLineLen`（0=不画线）、线粗 `dividerLineW`、上下留白 `dividerPadY`（默认值；逐条可选：窄 25 / 中 50 / 宽 80） |
 | 配色 | `PALETTE` 中的全部颜色 |
 | 默认消息 | `DEFAULT_MESSAGES`（中文、英文两套，可自行替换为任意内容） |
 | 字体 | `fontFamily`、`fontHeaderZh`、`fontHeaderEn`、`fontUserNameEn`、`fontMeta` |
@@ -159,7 +159,7 @@ All adjustable parameters are centralized in `CONFIG` and `PALETTE` at the top o
 | Header | Chinese and English font sizes for the title / username (`hdrTitleSizeEn` / `hdrUserNameSizeEn`), font weight, envelope icon, arrow, underline, dark-red small text `hdrCode` / `hdrVer` |
 | Bubbles | Font size `msgFontSize`, Western-text weight `msgWeight` (CJK stays regular), English vertical stretch `msgStretchEn`, line height, padding, max width, bevel `bevel`, tail `tailFront` / `tailSlope` / `tailDrop`, bubble spacing |
 | Message images | Small-tier width ratio `msgImgSmallRatio`, max height `msgImgMaxH` (0 = unlimited), image-to-text gap `msgImgGapY` |
-| Divider | Font `dividerFont`, size `dividerFontSize`, weight `dividerWeight`, line-to-text gap `dividerLineGapX`, line length `dividerLineLen` (0 = no lines), line width `dividerLineW`, vertical padding `dividerPadY` |
+| Divider | Font `dividerFont`, size `dividerFontSize`, weight `dividerWeight`, line-to-text gap `dividerLineGapX`, line length `dividerLineLen` (0 = no lines), line width `dividerLineW`, vertical padding `dividerPadY` (default; per-divider selectable: narrow 25 / medium 50 / wide 80) |
 | Colors | All colors in `PALETTE` |
 | Default messages | `DEFAULT_MESSAGES` (separate Chinese and English sets, freely replaceable with any content) |
 | Fonts | `fontFamily`, `fontHeaderZh`, `fontHeaderEn`, `fontUserNameEn`, `fontMeta` |

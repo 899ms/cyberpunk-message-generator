@@ -220,6 +220,26 @@
       color: #8fa3bd;
     }
 
+    .div-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .div-row .div-pad-label {
+      font-size: 12px;
+      letter-spacing: 1px;
+      color: #8fa3bd;
+    }
+
+    .div-row .div-pad {
+      width: auto;
+      flex: none;
+      padding: 4px 6px;
+      font-size: 12px;
+    }
+
     .msg {
       border: 1px solid var(--line);
       border-radius: 4px;
@@ -304,6 +324,19 @@
       background: rgba(3, 3, 8, .94);
     }
 
+    /* 实时预览提示：移动端横屏后，右侧即为实时预览区（仅触屏设备显示，见脚本中的 maxTouchPoints 检测） */
+    .rotate-hint {
+      display: none;
+      padding: 3px 12px;
+      margin: 2px 0 12px;
+      font-size: 12px;
+      letter-spacing: .5px;
+      color: var(--cyan);
+      background: rgba(0, 246, 255, .06);
+      border: 1px solid rgba(0, 246, 255, .4);
+      border-radius: 999px;
+    }
+
     .save-overlay img {
       max-width: 100%;
       max-height: calc(100vh - 110px);
@@ -361,6 +394,8 @@
           <button type="button" class="lang-btn" data-lang="en">EN</button>
         </div>
       </div>
+      <!-- 实时预览提示：移动端横屏后，右侧即为实时预览区 -->
+      <div id="rotateHint" class="rotate-hint" data-i18n="rotateHint">↻ 把手机横过来，即可实时预览</div>
       <div class="field">
         <label data-i18n="userName">对话用户名</label>
         <input id="inUser" type="text" value="朱迪 · 阿尔瓦雷兹" placeholder="输入对话用户的用户名" data-i18n-ph="userNamePh" />
@@ -512,7 +547,7 @@
       dividerLineGapX: 14,         // 分割线与文字的间距（左右各一段；仅「带分割线」样式生效）
       dividerLineLen: 30,          // 分割线长度（px，文字两侧各一条短线段；0 = 不画线）
       dividerLineW: 2,             // 分割线粗细
-      dividerPadY: 26,             // 分隔块上下留白（在气泡间隔 gapBetween 之外额外增加）
+      dividerPadY: 25,             // 分隔块上下留白的默认值（在气泡间隔 gapBetween 之外额外增加；每条分隔可在行内选择 窄25 / 中50 / 宽80）
     };
     /* 配色（全部可修改） */
     const PALETTE = {
@@ -623,6 +658,10 @@
     function msgStretch() { return LANG === 'en' ? CONFIG.msgStretchEn : 1; }
     // 分隔消息类型：divider = 带分割线；dividerText = 纯文字（用于「19:00」「十分钟后」这类间隔提示）
     function isDivider(side) { return side === 'divider' || side === 'dividerText'; }
+    // 分隔块上下留白：行内选择值优先，缺省回退 CONFIG.dividerPadY（窄25 / 中50 / 宽80）
+    function divPadY(m) {
+      return m.dividerPad != null ? m.dividerPad : CONFIG.dividerPadY;
+    }
     function splitRuns(text) {
       const runs = [];
       let cur = '', curWestern = null;
@@ -831,10 +870,11 @@
       let cursor = msgArea().y;
       for (const m of msgs) {
         if (isDivider(m.side)) {
-          // 分隔：单行居中文字（带分割线 / 纯文字）；高度 = 字形高度 + 上下留白
+          // 分隔：单行居中文字（带分割线 / 纯文字）；高度 = 字形高度 + 上下留白（逐条可选 窄25 / 中50 / 宽80，缺省取 CONFIG.dividerPadY）
           const dg = measureGlyph(m.text, CONFIG.dividerFontSize, CONFIG.dividerWeight, CONFIG.dividerFont);
-          const dh = CONFIG.dividerPadY * 2 + dg.asc + dg.desc;
-          items.push({ dividerType: m.side, text: m.text, y: cursor, h: dh, ascent: dg.asc, desc: dg.desc });
+          const padY = divPadY(m);
+          const dh = padY * 2 + dg.asc + dg.desc;
+          items.push({ dividerType: m.side, text: m.text, y: cursor, h: dh, ascent: dg.asc, desc: dg.desc, padY });
           cursor += dh + CONFIG.gapBetween;
           continue;
         }
@@ -1038,7 +1078,7 @@
       ctx.textBaseline = 'alphabetic';
       const tw = it.text ? ctx.measureText(it.text).width : 0;
       const tx = (xL + xR - tw) / 2;                       // 文字水平居中
-      const base = it.y + CONFIG.dividerPadY + it.ascent;
+      const base = it.y + it.padY + it.ascent;
       if (tw) {
         ctx.fillStyle = PALETTE.dividerText;
         ctx.fillText(it.text, tx, base);
@@ -1123,10 +1163,15 @@
         avatarCustomUploaded: '自定义图片（已上传）',
         msgListLabel: '消息列表（对方=蓝色 · 我方=绿色 · 分隔=灰色）',
         addMsg: '＋ 添加消息',
+        dividerPadLabel: '间距',
+        dividerPadNarrow: '窄',
+        dividerPadMedium: '中',
+        dividerPadWide: '宽',
         scale: '导出倍率',
         exportBtn: '导出 PNG（PC 端点这个）',
         saveBtn: '保存到相册（移动端点这个）',
         saveHint: '长按图片 →「存储到照片」（iOS）/「保存图片」（Android）',
+        rotateHint: '↻ 把手机横过来，即可实时预览',
         saveTip: '提示：<b>不要直接分享到微信</b>——微信会压缩图片、导致色彩不准。正确做法：先「保存到相册」，再在微信里从相册选图、<b>勾选「原图」</b>发送。',
         sideOther: '对方 · 蓝',
         sideMe: '我方 · 绿',
@@ -1142,7 +1187,7 @@
         delTitle: '删除',
         msgPh: '输入消息内容…',
         canvasPlaceholder: '（请输入聊天消息）',
-        hint: '· 画布逻辑宽度 1200px，高度随消息自动生成。<br />· 头像读取同目录图片文件（可在下拉框选择），替换同名文件即可换图。<br />· 双击打开时头像可正常显示；导出 PNG 会被浏览器安全限制拦截，按弹窗提示选择一次图片文件即可自动导出，或用本地服务器（python -m http.server）。<br />· 字体：中英可切换。英文页头（MESSAGES）使用 Blender Pro（外部引用同目录 Blender-Pro-Book.ttf，缺失时回退 Rajdhani）；英文用户名使用 Rajdhani（字符支持更全）；暗红细字使用 Play；消息体西文使用 Rajdhani（字重 600；Google Fonts，需联网，离线回退系统字体）。<br />· 手机端点「保存到相册」，长按图片选择「存储到照片」存入相册；之后从相册转发（微信勾选「原图」）可避免聊天软件二次压缩。<br />· 消息类型：对方=蓝 / 我方=绿 / 分隔=灰（用于「19:00」「十分钟后」这类间隔提示，带分割线或纯文字两种样式，样式均可配）。<br />· 所有尺寸、间距、颜色参数均可改：见脚本顶部 CONFIG / PALETTE。',
+        hint: '· 画布逻辑宽度 1200px，高度随消息自动生成。<br />· 头像读取同目录图片文件（可在下拉框选择），替换同名文件即可换图。<br />· 双击打开时头像可正常显示；导出 PNG 会被浏览器安全限制拦截，按弹窗提示选择一次图片文件即可自动导出，或用本地服务器（python -m http.server）。<br />· 字体：中英可切换。英文页头（MESSAGES）使用 Blender Pro（外部引用同目录 Blender-Pro-Book.ttf，缺失时回退 Rajdhani）；英文用户名使用 Rajdhani（字符支持更全）；暗红细字使用 Play；消息体西文使用 Rajdhani（字重 600；Google Fonts，需联网，离线回退系统字体）。<br />· 手机端点「保存到相册」，长按图片选择「存储到照片」存入相册；之后从相册转发（微信勾选「原图」）可避免聊天软件二次压缩。<br />· 消息类型：对方=蓝 / 我方=绿 / 分隔=灰（用于「19:00」「十分钟后」这类间隔提示，带分割线或纯文字两种样式，样式均可配，每条分隔可单独选择间距 窄 / 中 / 宽）。<br />· 所有尺寸、间距、颜色参数均可改：见脚本顶部 CONFIG / PALETTE。',
       },
       en: {
         appTitle: 'Cyberpunk Chat Log Generator',
@@ -1158,10 +1203,15 @@
         avatarCustomUploaded: 'Custom image (uploaded)',
         msgListLabel: 'Messages (Other = blue · Me = green · Divider = gray)',
         addMsg: '+ Add message',
+        dividerPadLabel: 'Spacing',
+        dividerPadNarrow: 'Narrow',
+        dividerPadMedium: 'Medium',
+        dividerPadWide: 'Wide',
         scale: 'Export scale',
         exportBtn: 'Export PNG (use on desktop)',
         saveBtn: 'Save to Photos (use on mobile)',
         saveHint: 'Press and hold the image → "Save to Photos" (iOS) / "Download image" (Android)',
+        rotateHint: '↻ Rotate to landscape for live preview',
         saveTip: 'Tip: <b>do not share directly to WeChat</b> — it recompresses images and shifts colors. Instead: tap "Save to Photos" first, then pick the image from your album in WeChat and <b>tick "Original"</b>.',
         sideOther: 'Other · Blue',
         sideMe: 'Me · Green',
@@ -1177,7 +1227,7 @@
         delTitle: 'Delete',
         msgPh: 'Type a message…',
         canvasPlaceholder: '(Enter chat messages)',
-        hint: '· Canvas logical width 1200px; height grows with the messages.<br />· Avatar images load from files in the same folder (selectable in the dropdown); replace the file to change it.<br />· When opened by double-click, the avatar displays fine, but PNG export may be blocked by browser security. Follow the dialog to pick the image file once and export resumes automatically, or serve locally (python -m http.server).<br />· Fonts: switchable zh/en. EN header (MESSAGES) uses Blender Pro (external file Blender-Pro-Book.ttf in this folder; falls back to Rajdhani if missing); EN user name uses Rajdhani (broader character coverage); dark-red meta text uses Play; Western letters in the message body use Rajdhani (weight 600; Google Fonts — needs network, falls back to system fonts offline).<br />· On mobile, tap "Save to Photos" and press-and-hold the image to store it in your photo library; then forward from the album (tick "Original" in WeChat) to avoid messaging-app compression.<br />· Message types: Other = blue / Me = green / Divider = gray (for "19:00" / "ten minutes later" separators; line or text-only styles, fully configurable).<br />· All sizes, spacing and colors are configurable: see CONFIG / PALETTE at the top of the script.',
+        hint: '· Canvas logical width 1200px; height grows with the messages.<br />· Avatar images load from files in the same folder (selectable in the dropdown); replace the file to change it.<br />· When opened by double-click, the avatar displays fine, but PNG export may be blocked by browser security. Follow the dialog to pick the image file once and export resumes automatically, or serve locally (python -m http.server).<br />· Fonts: switchable zh/en. EN header (MESSAGES) uses Blender Pro (external file Blender-Pro-Book.ttf in this folder; falls back to Rajdhani if missing); EN user name uses Rajdhani (broader character coverage); dark-red meta text uses Play; Western letters in the message body use Rajdhani (weight 600; Google Fonts — needs network, falls back to system fonts offline).<br />· On mobile, tap "Save to Photos" and press-and-hold the image to store it in your photo library; then forward from the album (tick "Original" in WeChat) to avoid messaging-app compression.<br />· Message types: Other = blue / Me = green / Divider = gray (for "19:00" / "ten minutes later" separators; line or text-only styles, fully configurable; spacing selectable per divider: narrow / medium / wide).<br />· All sizes, spacing and colors are configurable: see CONFIG / PALETTE at the top of the script.',
       },
     };
 
@@ -1244,12 +1294,21 @@
         schedule();
         return;
       }
+      const padSel = e.target.closest('.div-pad');     // 分隔块间距档位（窄 / 中 / 宽，仅分隔类型上出现）
+      if (padSel) {
+        const m = findMsg(row);
+        if (m) m.dividerPad = Number(padSel.value);
+        schedule();
+        return;
+      }
       const sel = e.target.closest('.side');
       if (!sel) return;
       const m = findMsg(row);
       if (m) m.side = sel.value;
       const imgRow = row.querySelector('.img-row');   // 分隔类型不显示图片控件
       if (imgRow) imgRow.style.display = isDivider(sel.value) ? 'none' : '';
+      const divRow = row.querySelector('.div-row');   // 仅分隔类型显示间距控件
+      if (divRow) divRow.style.display = isDivider(sel.value) ? '' : 'none';
       schedule();
     });
     msgListEl.addEventListener('click', (e) => {
@@ -1320,6 +1379,16 @@
       }
       return '<span class="upload-link img-add">' + L.addImg + '</span>';
     }
+    // 分隔行的间距控件（窄 / 中 / 宽；仅分隔类型显示；默认值取 CONFIG.dividerPadY）
+    function divRowHtml() {
+      const L = L10N[LANG];
+      return '<span class="div-pad-label">' + L.dividerPadLabel + '</span>' +
+        '<select class="div-pad">' +
+        '<option value="25">' + L.dividerPadNarrow + '</option>' +
+        '<option value="50">' + L.dividerPadMedium + '</option>' +
+        '<option value="80">' + L.dividerPadWide + '</option>' +
+        '</select>';
+    }
     function addRow(m) {
       m = m || { side: 'other', text: '' };
       if (m.id == null) m.id = ++msgSeq;
@@ -1336,11 +1405,14 @@
         '<button class="del" title="' + L10N[LANG].delTitle + '">✕</button>' +
         '</div>' +
         '<textarea class="text" rows="3" placeholder="' + L10N[LANG].msgPh + '"></textarea>' +
-        '<div class="img-row"' + (isDivider(m.side) ? ' style="display:none"' : '') + '>' + imgRowHtml(m) + '</div>';
+        '<div class="img-row"' + (isDivider(m.side) ? ' style="display:none"' : '') + '>' + imgRowHtml(m) + '</div>' +
+        '<div class="div-row"' + (isDivider(m.side) ? '' : ' style="display:none"') + '>' + divRowHtml() + '</div>';
       row.querySelector('.side').value = m.side;
       row.querySelector('.text').value = m.text;
       const sizeSel = row.querySelector('.img-size');
       if (sizeSel) sizeSel.value = m.imgSize || 'medium';
+      const padSel = row.querySelector('.div-pad');
+      if (padSel) padSel.value = String(divPadY(m));
       msgListEl.appendChild(row);
     }
     // 语言切换后重建全部消息行（事件委托基于 row.dataset.id，重建不影响交互）
@@ -1469,6 +1541,7 @@
     if ((navigator.maxTouchPoints || 0) > 0) {
       $('btnSave').style.display = 'block';
       $('saveTip').style.display = 'block';
+      $('rotateHint').style.display = 'inline-block';   // 实时预览提示：仅移动端显示
     }
 
     /* 初始化：先立即渲染一次（字体慢/被墙也不会白屏），字体就绪后再按真实字形重渲染 */
