@@ -46,7 +46,7 @@ This project is a joint effort by two creators:
 
 - **高度还原游戏短信界面**：配色、信封图标、斜角气泡与小尾巴、暗红细字、下划线、渐变背景等细节，均按《赛博朋克 2077》现行短信界面的风格制作
 - **中英双语**：界面文案、画布页头（消息 / MESSAGES）、字体与默认聊天记录都会跟随语言切换
-  - 中文：微软雅黑 / 苹方（页头与用户名）
+  - 中文：苹方（优先）→ 思源黑体 / Noto Sans SC（Google Fonts 在线加载）→ 微软雅黑（兜底）
   - 英文：Blender Pro（页头，缺失时回退 Rajdhani）、Rajdhani（用户名，字符支持更全，英文模式自动转大写）
   - 暗红细字：Play
   - 消息体西文：Rajdhani（西文字重可配 `msgWeight`，中文保持常规）
@@ -59,7 +59,7 @@ This project is a joint effort by two creators:
 
 - **Faithful reproduction of the in-game SMS UI**: colors, envelope icon, beveled bubbles with tails, dark-red small text, underlines, gradient background and other details all follow the current *Cyberpunk 2077* in-game messaging style
 - **Bilingual (Chinese / English)**: UI text, canvas header (消息 / MESSAGES), fonts and default chat messages all switch with the selected language
-  - Chinese: Microsoft YaHei / PingFang (header and username)
+  - Chinese: PingFang (preferred) → Noto Sans SC / Source Han Sans (loaded from Google Fonts) → Microsoft YaHei (fallback)
   - English: Blender Pro (header; falls back to Rajdhani if missing); Rajdhani (user name, broader character coverage, auto-uppercase in English mode)
   - Dark-red small text: Play
   - Western letters in message bubbles: Rajdhani (weight configurable via `msgWeight`; CJK text stays regular)
@@ -182,10 +182,10 @@ Elements are connected through relative spacing parameters (e.g. `hdrCodeToIconG
 
 ## 字体说明 / Fonts
 
-- **Rajdhani / Play**：通过 Google Fonts 在线加载，需要联网；离线或加载失败时自动回退系统字体。Rajdhani 用于英文用户名与消息体西文，Play 用于暗红细字
+- **Rajdhani / Play / Noto Sans SC**：通过 Google Fonts 在线加载，需要联网；离线或加载失败时自动回退系统字体。Rajdhani 用于英文用户名与消息体西文，Play 用于暗红细字，Noto Sans SC（思源黑体）用于中文（无苹方设备时的首选中文）
 - **Blender Pro**：商用字体，仅用于英文页头（MESSAGES）。随仓库提供（仅限本非商业粉丝项目使用，商业用途需自行获取授权）
 
-- **Rajdhani / Play**: loaded online from Google Fonts — an internet connection is required; falls back to system fonts when offline or if loading fails. Rajdhani is used for the English user name and Western text in message bubbles; Play for the dark-red meta text
+- **Rajdhani / Play / Noto Sans SC**: loaded online from Google Fonts — an internet connection is required; falls back to system fonts when offline or if loading fails. Rajdhani is used for the English user name and Western text in message bubbles; Play for the dark-red meta text; Noto Sans SC (Source Han Sans) for Chinese on devices without PingFang
 - **Blender Pro**: a commercial font used for the English header (MESSAGES) only. Bundled with the repository for non-commercial fan use only (commercial use requires obtaining a license)
 
 ## 已知限制 / Known Limitations

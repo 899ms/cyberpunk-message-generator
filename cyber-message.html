@@ -9,7 +9,7 @@
        若需离线使用：可改回内嵌 base64 的 @font-face，或经本地服务器引用同目录字体文件 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Play:wght@400&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Play:wght@400&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     /* Blender Pro（商用字体）：外部引用同目录字体文件 Blender-Pro-Book.ttf（file:// 双击打开亦可加载，实测 Chromium 正常）；
        文件缺失时回退系统已安装的 Blender Pro 或 Rajdhani */
@@ -446,7 +446,7 @@
         · 画布逻辑宽度 1200px，高度随消息自动生成。<br />
         · 头像读取同目录图片文件（可在下拉框选择），替换同名文件即可换图。<br />
         · 双击打开时头像可正常显示；导出 PNG 会被浏览器安全限制拦截，按弹窗提示选择一次图片文件即可自动导出，或用本地服务器（python -m http.server）。<br />
-        · 字体：中英可切换。英文页头（MESSAGES）使用 Blender Pro（外部引用同目录 Blender-Pro-Book.ttf，缺失时回退 Rajdhani）；英文用户名使用 Rajdhani（字符支持更全）；暗红细字使用 Play；消息体西文使用 Rajdhani（字重 600；Google Fonts，需联网，离线回退系统字体）。<br />
+        · 字体：中英可切换。英文页头（MESSAGES）使用 Blender Pro（外部引用同目录 Blender-Pro-Book.ttf，缺失时回退 Rajdhani）；英文用户名使用 Rajdhani（字符支持更全）；暗红细字使用 Play；消息体西文使用 Rajdhani（字重 600；Google Fonts，需联网，离线回退系统字体）；中文优先苹方，其次思源黑体（Noto Sans SC，Google Fonts 在线加载），最后微软雅黑。<br />
         · 所有尺寸、间距、颜色参数均可改：见脚本顶部 CONFIG / PALETTE。
       </p>
     </aside>
@@ -475,11 +475,11 @@
       gradHeight: 600,           // 顶部/底部渐变红黑带的高度（仅观感，不影响图片高度）
       marginLeft: 154,            // 左边距：画布左缘 →「消息」下划线左端（= 底部暗红线左端）；icon x = marginLeft + hdrLinePadX，头部与消息区均由此派生
       marginRight: 50,           // 右边距：上方暗红线右端（= 底部暗红线右端 = 我方气泡右端）→ 画布右缘
-      fontFamily: '"Rajdhani","Microsoft YaHei","PingFang SC",sans-serif',
+      fontFamily: '"Rajdhani","PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif', // 消息正文（中文：苹方 → 思源黑体 → 微软雅黑）
       fontMeta: '"Play","Rajdhani",sans-serif',                       // 暗红细字（hdrCode / hdrVer）
-      fontHeaderZh: '"Microsoft YaHei","PingFang SC",sans-serif',     // 中文画布标题 / 用户名
+      fontHeaderZh: '"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif',   // 中文画布标题 / 用户名（苹方 → 思源黑体 → 微软雅黑）
       fontHeaderEn: '"BlenderPro","Rajdhani","Microsoft YaHei","PingFang SC",sans-serif', // 英文画布标题（MESSAGES）
-      fontUserNameEn: '"Rajdhani","Microsoft YaHei","PingFang SC",sans-serif', // 英文用户名（Rajdhani：Blender Pro 部分字符不支持）
+      fontUserNameEn: '"Rajdhani","PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif', // 英文用户名（Rajdhani：Blender Pro 部分字符不支持；中文回退同正文）
 
       /* ---- 头部（全部可配置颜色/位置/字号） ---- */
       hdrCode: 'TRN_TCLAS_800095', // 顶部细红字文本
@@ -541,7 +541,7 @@
       bottomLineGap: 100,        // 底部暗红线距最后消息底边的距离（左右端 = marginLeft / width - marginRight）
 
       /* ---- 分隔（时间 / 间隔提示）：两种样式，均为居中一行文字 ---- */
-      dividerFont: '"Rajdhani","Microsoft YaHei","PingFang SC",sans-serif', // 分隔文字字体
+      dividerFont: '"Rajdhani","PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif', // 分隔文字字体（中文同正文栈）
       dividerFontSize: 22,         // 分隔文字字号
       dividerWeight: 400,          // 分隔文字字重
       dividerLineGapX: 14,         // 分割线与文字的间距（左右各一段；仅「带分割线」样式生效）
@@ -1187,7 +1187,7 @@
         delTitle: '删除',
         msgPh: '输入消息内容…',
         canvasPlaceholder: '（请输入聊天消息）',
-        hint: '· 画布逻辑宽度 1200px，高度随消息自动生成。<br />· 头像读取同目录图片文件（可在下拉框选择），替换同名文件即可换图。<br />· 双击打开时头像可正常显示；导出 PNG 会被浏览器安全限制拦截，按弹窗提示选择一次图片文件即可自动导出，或用本地服务器（python -m http.server）。<br />· 字体：中英可切换。英文页头（MESSAGES）使用 Blender Pro（外部引用同目录 Blender-Pro-Book.ttf，缺失时回退 Rajdhani）；英文用户名使用 Rajdhani（字符支持更全）；暗红细字使用 Play；消息体西文使用 Rajdhani（字重 600；Google Fonts，需联网，离线回退系统字体）。<br />· 手机端点「保存到相册」，长按图片选择「存储到照片」存入相册；之后从相册转发（微信勾选「原图」）可避免聊天软件二次压缩。<br />· 消息类型：对方=蓝 / 我方=绿 / 分隔=灰（用于「19:00」「十分钟后」这类间隔提示，带分割线或纯文字两种样式，样式均可配，每条分隔可单独选择间距 窄 / 中 / 宽）。<br />· 所有尺寸、间距、颜色参数均可改：见脚本顶部 CONFIG / PALETTE。',
+        hint: '· 画布逻辑宽度 1200px，高度随消息自动生成。<br />· 头像读取同目录图片文件（可在下拉框选择），替换同名文件即可换图。<br />· 双击打开时头像可正常显示；导出 PNG 会被浏览器安全限制拦截，按弹窗提示选择一次图片文件即可自动导出，或用本地服务器（python -m http.server）。<br />· 字体：中英可切换。英文页头（MESSAGES）使用 Blender Pro（外部引用同目录 Blender-Pro-Book.ttf，缺失时回退 Rajdhani）；英文用户名使用 Rajdhani（字符支持更全）；暗红细字使用 Play；消息体西文使用 Rajdhani（字重 600；Google Fonts，需联网，离线回退系统字体）；中文优先苹方，其次思源黑体（Noto Sans SC，Google Fonts 在线加载），最后微软雅黑。<br />· 手机端点「保存到相册」，长按图片选择「存储到照片」存入相册；之后从相册转发（微信勾选「原图」）可避免聊天软件二次压缩。<br />· 消息类型：对方=蓝 / 我方=绿 / 分隔=灰（用于「19:00」「十分钟后」这类间隔提示，带分割线或纯文字两种样式，样式均可配，每条分隔可单独选择间距 窄 / 中 / 宽）。<br />· 所有尺寸、间距、颜色参数均可改：见脚本顶部 CONFIG / PALETTE。',
       },
       en: {
         appTitle: 'Cyberpunk Chat Log Generator',
@@ -1227,7 +1227,7 @@
         delTitle: 'Delete',
         msgPh: 'Type a message…',
         canvasPlaceholder: '(Enter chat messages)',
-        hint: '· Canvas logical width 1200px; height grows with the messages.<br />· Avatar images load from files in the same folder (selectable in the dropdown); replace the file to change it.<br />· When opened by double-click, the avatar displays fine, but PNG export may be blocked by browser security. Follow the dialog to pick the image file once and export resumes automatically, or serve locally (python -m http.server).<br />· Fonts: switchable zh/en. EN header (MESSAGES) uses Blender Pro (external file Blender-Pro-Book.ttf in this folder; falls back to Rajdhani if missing); EN user name uses Rajdhani (broader character coverage); dark-red meta text uses Play; Western letters in the message body use Rajdhani (weight 600; Google Fonts — needs network, falls back to system fonts offline).<br />· On mobile, tap "Save to Photos" and press-and-hold the image to store it in your photo library; then forward from the album (tick "Original" in WeChat) to avoid messaging-app compression.<br />· Message types: Other = blue / Me = green / Divider = gray (for "19:00" / "ten minutes later" separators; line or text-only styles, fully configurable; spacing selectable per divider: narrow / medium / wide).<br />· All sizes, spacing and colors are configurable: see CONFIG / PALETTE at the top of the script.',
+        hint: '· Canvas logical width 1200px; height grows with the messages.<br />· Avatar images load from files in the same folder (selectable in the dropdown); replace the file to change it.<br />· When opened by double-click, the avatar displays fine, but PNG export may be blocked by browser security. Follow the dialog to pick the image file once and export resumes automatically, or serve locally (python -m http.server).<br />· Fonts: switchable zh/en. EN header (MESSAGES) uses Blender Pro (external file Blender-Pro-Book.ttf in this folder; falls back to Rajdhani if missing); EN user name uses Rajdhani (broader character coverage); dark-red meta text uses Play; Western letters in the message body use Rajdhani (weight 600; Google Fonts — needs network, falls back to system fonts offline); Chinese prefers PingFang, then Noto Sans SC (Source Han Sans, loaded from Google Fonts), then Microsoft YaHei.<br />· On mobile, tap "Save to Photos" and press-and-hold the image to store it in your photo library; then forward from the album (tick "Original" in WeChat) to avoid messaging-app compression.<br />· Message types: Other = blue / Me = green / Divider = gray (for "19:00" / "ten minutes later" separators; line or text-only styles, fully configurable; spacing selectable per divider: narrow / medium / wide).<br />· All sizes, spacing and colors are configurable: see CONFIG / PALETTE at the top of the script.',
       },
     };
 
