@@ -212,6 +212,11 @@
       color: var(--red)
     }
 
+    /* 「导出这条」贴行尾：flex 吃掉左侧剩余空间，与图片控件自然隔开 */
+    .img-row .row-export {
+      margin-left: auto;
+    }
+
     .img-row .img-hint {
       flex-basis: 100%;
       font-size: 11px;
@@ -292,6 +297,30 @@
 
     .btn:hover {
       filter: brightness(1.15)
+    }
+
+    /* 导出按钮行：大按钮占满剩余宽度，气泡包按钮在右侧取自然宽度 */
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .btn-row .btn {
+      width: auto;
+      margin-top: 0;
+    }
+
+    .btn-row #btnExport {
+      flex: 1 1 auto;
+    }
+
+    .btn-row #btnBubbles {
+      flex: 0 0 auto;
+      padding: 9px 12px;
+      font-size: 12px;
+      letter-spacing: 1px;
+      white-space: nowrap;
     }
 
     .env {
@@ -439,14 +468,18 @@
           <option value="3">3x</option>
         </select>
       </div>
-      <button id="btnExport" class="btn primary" data-i18n="exportBtn">导出 PNG（PC 端点这个）</button>
+      <div class="btn-row">
+        <button id="btnExport" class="btn primary" data-i18n="exportBtn">导出 PNG（PC 端点这个）</button>
+        <button id="btnBubbles" class="btn" data-i18n="exportBubblesBtn" data-i18n-title="exportBubblesTitle" title="每条气泡单独导出为透明底 PNG 并打包成 ZIP 合集；只有气泡本身，不含背景 / 头像 / 联系人名字">单条气泡 ZIP</button>
+      </div>
       <button id="btnSave" class="btn" data-i18n="saveBtn" style="display:none">保存到相册（移动端点这个）</button>
       <p id="saveTip" class="save-tip" data-i18n-html="saveTip" style="display:none">提示：<b>不要直接分享到微信</b>——微信会压缩图片、导致色彩不准。正确做法：先「保存到相册」，再在微信里从相册选图、<b>勾选「原图」</b>发送。</p>
       <p class="hint" data-i18n-html="hint">
         · 画布逻辑宽度 1200px，高度随消息自动生成。<br />
-        · 头像读取同目录图片文件（可在下拉框选择），替换同名文件即可换图。<br />
-        · 双击打开时头像可正常显示；导出 PNG 会被浏览器安全限制拦截，按弹窗提示选择一次图片文件即可自动导出，或用本地服务器（python -m http.server）。<br />
-        · 字体：中英可切换。英文页头（MESSAGES）使用 Blender Pro（外部引用同目录 Blender-Pro-Book.ttf，缺失时回退 Rajdhani）；英文用户名使用 Rajdhani（字符支持更全）；暗红细字使用 Play；消息体西文使用 Rajdhani（字重 600；Google Fonts，需联网，离线回退系统字体）；中文优先苹方，其次思源黑体（Noto Sans SC，Google Fonts 在线加载），最后微软雅黑。<br />
+        · 头像读取同目录图片文件，替换同名文件即可换图。<br />
+        · 双击打开时头像可正常显示；导出 PNG 有可能会被浏览器安全限制拦截，按弹窗提示选择一次图片文件即可自动导出。<br />
+        · 手机端点「保存到相册」，长按图片选择「存储到照片」存入相册；之后从相册转发（微信勾选「原图」）可避免聊天软件二次压缩。<br />
+        · 「单条气泡 ZIP」= 每条气泡单独一张 PNG（透明底）的集合包；只有气泡本身，不带背景 / 头像 / 联系人名字，分隔消息也不含在内。<br />
         · 所有尺寸、间距、颜色参数均可改：见脚本顶部 CONFIG / PALETTE。
       </p>
     </aside>
@@ -1042,30 +1075,31 @@
     function drawMessages(laid) {
       const xOther = msgArea().x;
       const xMe = CONFIG.width - CONFIG.marginRight;
-
       for (const it of laid.items) {
         if (it.dividerType) { drawDivider(it); continue; }
-        const isMe = it.side === 'me';
-        const x = isMe ? xMe - it.w : xOther;
-
-        ctx.save();
-        ctx.lineWidth = CONFIG.borderW;
-        ctx.lineJoin = 'round';
-        ctx.strokeStyle = isMe ? PALETTE.greenBorder : PALETTE.blueBorder;
-        ctx.fillStyle = isMe ? PALETTE.greenBg : PALETTE.blueBg;
-        traceBubble(x, it.y, it.w, it.h, CONFIG.bevel, CONFIG.tailDrop, CONFIG.tailFront, CONFIG.tailSlope, isMe);
-        ctx.fill();
-        ctx.stroke();
-        ctx.fillStyle = it.placeholder ? PALETTE.placeholder : (isMe ? PALETTE.bubbleTextMe : PALETTE.bubbleText);
-        const base = it.y + CONFIG.bubblePadY + it.ascent;
-        const lineH = CONFIG.msgLineHeight * msgStretch();
-        it.lines.forEach((ln, i) => drawStyledLine(ln, x + CONFIG.bubblePadX, base + i * lineH));
-        if (it.img) {
-          // 图片贴气泡内底边，与上方文字留出 msgImgGapY 间距（纯图片消息则只有上下留白）
-          ctx.drawImage(it.img.image, x + CONFIG.bubblePadX, it.y + it.h - CONFIG.bubblePadY - it.img.h, it.img.w, it.img.h);
-        }
-        ctx.restore();
+        drawBubble(it, it.side === 'me' ? xMe - it.w : xOther, it.y);
       }
+    }
+    // 单条气泡绘制（主渲染与「导出单条气泡」共用）；x/y = 气泡左上角，尾巴在底边下方多出 tailDrop
+    function drawBubble(it, x, y) {
+      const isMe = it.side === 'me';
+      ctx.save();
+      ctx.lineWidth = CONFIG.borderW;
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = isMe ? PALETTE.greenBorder : PALETTE.blueBorder;
+      ctx.fillStyle = isMe ? PALETTE.greenBg : PALETTE.blueBg;
+      traceBubble(x, y, it.w, it.h, CONFIG.bevel, CONFIG.tailDrop, CONFIG.tailFront, CONFIG.tailSlope, isMe);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = it.placeholder ? PALETTE.placeholder : (isMe ? PALETTE.bubbleTextMe : PALETTE.bubbleText);
+      const base = y + CONFIG.bubblePadY + it.ascent;
+      const lineH = CONFIG.msgLineHeight * msgStretch();
+      it.lines.forEach((ln, i) => drawStyledLine(ln, x + CONFIG.bubblePadX, base + i * lineH));
+      if (it.img) {
+        // 图片贴气泡内底边，与上方文字留出 msgImgGapY 间距（纯图片消息则只有上下留白）
+        ctx.drawImage(it.img.image, x + CONFIG.bubblePadX, y + it.h - CONFIG.bubblePadY - it.img.h, it.img.w, it.img.h);
+      }
+      ctx.restore();
     }
     /* ---------- 分隔（时间 / 间隔提示） ---------- */
     // 「带分割线」：居中文字 + 文字两侧的短分割线（长度/间距可配，长度设为 0 即取消线条）；
@@ -1169,6 +1203,9 @@
         dividerPadWide: '宽',
         scale: '导出倍率',
         exportBtn: '导出 PNG（PC 端点这个）',
+        exportBubblesBtn: '单条气泡 ZIP',
+        exportBubblesTitle: '每条气泡单独导出为透明底 PNG 并打包成 ZIP 合集；只有气泡本身，不含背景 / 头像 / 联系人名字',
+        exportOne: '导出这条',
         saveBtn: '保存到相册（移动端点这个）',
         saveHint: '长按图片 →「存储到照片」（iOS）/「保存图片」（Android）',
         rotateHint: '↻ 把手机横过来，即可实时预览',
@@ -1187,7 +1224,7 @@
         delTitle: '删除',
         msgPh: '输入消息内容…',
         canvasPlaceholder: '（请输入聊天消息）',
-        hint: '· 画布逻辑宽度 1200px，高度随消息自动生成。<br />· 头像读取同目录图片文件（可在下拉框选择），替换同名文件即可换图。<br />· 双击打开时头像可正常显示；导出 PNG 会被浏览器安全限制拦截，按弹窗提示选择一次图片文件即可自动导出，或用本地服务器（python -m http.server）。<br />· 字体：中英可切换。英文页头（MESSAGES）使用 Blender Pro（外部引用同目录 Blender-Pro-Book.ttf，缺失时回退 Rajdhani）；英文用户名使用 Rajdhani（字符支持更全）；暗红细字使用 Play；消息体西文使用 Rajdhani（字重 600；Google Fonts，需联网，离线回退系统字体）；中文优先苹方，其次思源黑体（Noto Sans SC，Google Fonts 在线加载），最后微软雅黑。<br />· 手机端点「保存到相册」，长按图片选择「存储到照片」存入相册；之后从相册转发（微信勾选「原图」）可避免聊天软件二次压缩。<br />· 消息类型：对方=蓝 / 我方=绿 / 分隔=灰（用于「19:00」「十分钟后」这类间隔提示，带分割线或纯文字两种样式，样式均可配，每条分隔可单独选择间距 窄 / 中 / 宽）。<br />· 所有尺寸、间距、颜色参数均可改：见脚本顶部 CONFIG / PALETTE。',
+        hint: '· 画布逻辑宽度 1200px，高度随消息自动生成。<br />· 头像读取同目录图片文件，替换同名文件即可换图。<br />· 双击打开时头像可正常显示；导出 PNG 有可能会被浏览器安全限制拦截，按弹窗提示选择一次图片文件即可自动导出。<br />· 手机端点「保存到相册」，长按图片选择「存储到照片」存入相册；之后从相册转发（微信勾选「原图」）可避免聊天软件二次压缩。<br />· 「单条气泡 ZIP」= 每条气泡单独一张 PNG（透明底）的集合包；只有气泡本身，不带背景 / 头像 / 联系人名字，分隔消息也不含在内。<br />· 所有尺寸、间距、颜色参数均可改：见脚本顶部 CONFIG / PALETTE。',
       },
       en: {
         appTitle: 'Cyberpunk Chat Log Generator',
@@ -1209,6 +1246,9 @@
         dividerPadWide: 'Wide',
         scale: 'Export scale',
         exportBtn: 'Export PNG (use on desktop)',
+        exportBubblesBtn: 'Bubbles ZIP',
+        exportBubblesTitle: 'Export every bubble as a transparent PNG packed into a ZIP — bubble only: no background, avatar or contact name',
+        exportOne: 'Export this',
         saveBtn: 'Save to Photos (use on mobile)',
         saveHint: 'Press and hold the image → "Save to Photos" (iOS) / "Download image" (Android)',
         rotateHint: '↻ Rotate to landscape for live preview',
@@ -1227,7 +1267,7 @@
         delTitle: 'Delete',
         msgPh: 'Type a message…',
         canvasPlaceholder: '(Enter chat messages)',
-        hint: '· Canvas logical width 1200px; height grows with the messages.<br />· Avatar images load from files in the same folder (selectable in the dropdown); replace the file to change it.<br />· When opened by double-click, the avatar displays fine, but PNG export may be blocked by browser security. Follow the dialog to pick the image file once and export resumes automatically, or serve locally (python -m http.server).<br />· Fonts: switchable zh/en. EN header (MESSAGES) uses Blender Pro (external file Blender-Pro-Book.ttf in this folder; falls back to Rajdhani if missing); EN user name uses Rajdhani (broader character coverage); dark-red meta text uses Play; Western letters in the message body use Rajdhani (weight 600; Google Fonts — needs network, falls back to system fonts offline); Chinese prefers PingFang, then Noto Sans SC (Source Han Sans, loaded from Google Fonts), then Microsoft YaHei.<br />· On mobile, tap "Save to Photos" and press-and-hold the image to store it in your photo library; then forward from the album (tick "Original" in WeChat) to avoid messaging-app compression.<br />· Message types: Other = blue / Me = green / Divider = gray (for "19:00" / "ten minutes later" separators; line or text-only styles, fully configurable; spacing selectable per divider: narrow / medium / wide).<br />· All sizes, spacing and colors are configurable: see CONFIG / PALETTE at the top of the script.',
+        hint: '· Canvas logical width 1200px; height grows with the messages.<br />· Avatar images load from files in the same folder; replace the file to change it.<br />· When opened by double-click, the avatar displays fine, but PNG export may sometimes be blocked by browser security. Follow the dialog to pick the image file once and export resumes automatically.<br />· On mobile, tap "Save to Photos" and press-and-hold the image to store it in your photo library; then forward from the album (tick "Original" in WeChat) to avoid messaging-app compression.<br />· What is "Bubbles ZIP"? A pack of per-bubble PNGs (transparent); each file contains only the bubble itself — no background, avatar or contact name, and dividers are excluded.<br />· All sizes, spacing and colors are configurable: see CONFIG / PALETTE at the top of the script.',
       },
     };
 
@@ -1331,6 +1371,11 @@
         if (m) { m.img = null; m.imgSrc = null; }
         rebuildRows();
         schedule();
+        return;
+      }
+      if (e.target.closest('.row-export')) {
+        const m = findMsg(row);
+        if (m) exportOneBubble(m);
       }
     });
     // 消息图片上传：共用隐藏 input（点击行内「添加/更换图片」时记录目标消息 id）
@@ -1363,9 +1408,10 @@
         .replace('{P}', Math.round(CONFIG.msgImgSmallRatio * 100))
         .replace('{H}', CONFIG.msgImgMaxH);
     }
-    // 消息行内的图片控件：无图 =「＋ 添加图片」；有图 = 缩略图 + 大/中/小 + 更换 / 移除 + 缩放提示
+    // 消息行内的图片控件 + 「导出这条」：无图 =「＋ 添加图片」；有图 = 缩略图 + 大/中/小 + 更换 / 移除 + 缩放提示
     function imgRowHtml(m) {
       const L = L10N[LANG];
+      const exp = '<span class="upload-link row-export">' + L.exportOne + '</span>';
       if (m.imgSrc) {
         return '<img class="thumb" src="' + m.imgSrc + '" alt="" />' +
           '<select class="img-size">' +
@@ -1375,9 +1421,10 @@
           '</select>' +
           '<span class="upload-link img-change">' + L.changeImg + '</span>' +
           '<span class="upload-link img-remove">' + L.removeImg + '</span>' +
+          exp +
           '<span class="img-hint">' + imgHintText() + '</span>';
       }
-      return '<span class="upload-link img-add">' + L.addImg + '</span>';
+      return '<span class="upload-link img-add">' + L.addImg + '</span>' + exp;
     }
     // 分隔行的间距控件（窄 / 中 / 宽；仅分隔类型显示；默认值取 CONFIG.dividerPadY）
     function divRowHtml() {
@@ -1516,6 +1563,99 @@
       }
     }
     $('btnExport').onclick = doExport;
+    $('btnBubbles').onclick = exportBubbles;
+
+    /* ---------- 导出单条气泡：透明底 PNG；「气泡包」全部打包为 ZIP ---------- */
+    // 单条气泡 → 透明底离屏画布（含描边与尾巴余量；倍率取界面「导出倍率」）
+    function bubbleCanvas(it, scale) {
+      const pad = Math.ceil(CONFIG.borderW / 2) + 1;
+      const off = document.createElement('canvas');
+      off.width = Math.ceil((it.w + pad * 2) * scale);
+      off.height = Math.ceil((it.h + CONFIG.tailDrop + pad * 2) * scale);
+      const c = off.getContext('2d');
+      c.scale(scale, scale);
+      c.textAlign = 'left';
+      c.textBaseline = 'alphabetic';
+      const prevCv = cv, prevCtx = ctx;   // 绘制函数统一用全局 ctx，这里临时切换到离屏画布
+      cv = off; ctx = c;
+      drawBubble(it, pad, pad);
+      cv = prevCv; ctx = prevCtx;
+      return off;
+    }
+    function canvasBlob(c) {
+      return new Promise((res) => {
+        if (!c.toBlob) { res(null); return; }
+        c.toBlob(res, 'image/png');
+      });
+    }
+    function downloadBlob(blob, filename) {
+      const a = document.createElement('a');
+      a.download = filename;
+      a.href = URL.createObjectURL(blob);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    }
+    // 导出单条气泡 PNG（文件名带方向：bubble-me / bubble-other）
+    async function exportOneBubble(m) {
+      const it = computeLayout([m]).items[0];
+      if (!it || it.dividerType) return;
+      const blob = await canvasBlob(bubbleCanvas(it, Number($('selScale').value)));
+      if (blob) downloadBlob(blob, 'bubble-' + (it.side === 'me' ? 'me' : 'other') + '.png');
+    }
+    // 导出全部气泡：逐条透明底 PNG → 打包 ZIP（编号-方向.png；不含分隔消息）
+    async function exportBubbles() {
+      if (renderPending) await render();
+      const items = computeLayout(messages.filter((m) => String(m.text).trim() !== '' || m.img))
+        .items.filter((it) => !it.dividerType);
+      if (!items.length) return;
+      const scale = Number($('selScale').value);
+      const files = [];
+      for (let i = 0; i < items.length; i++) {
+        const it = items[i];
+        const blob = await canvasBlob(bubbleCanvas(it, scale));
+        if (!blob) continue;
+        files.push({
+          name: String(i + 1).padStart(2, '0') + '-' + (it.side === 'me' ? 'me' : 'other') + '.png',
+          data: new Uint8Array(await blob.arrayBuffer()),
+        });
+      }
+      downloadBlob(makeZip(files), 'chat-bubbles.zip');
+    }
+    // 极简 ZIP 写入（STORE 存储不压缩——PNG 已压缩；仅需 CRC32 + 固定头结构）
+    const CRC_TABLE = (() => {
+      const t = new Uint32Array(256);
+      for (let n = 0; n < 256; n++) {
+        let c = n;
+        for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1;
+        t[n] = c >>> 0;
+      }
+      return t;
+    })();
+    function crc32(u8) {
+      let c = 0xFFFFFFFF;
+      for (let i = 0; i < u8.length; i++) c = CRC_TABLE[(c ^ u8[i]) & 0xFF] ^ (c >>> 8);
+      return (c ^ 0xFFFFFFFF) >>> 0;
+    }
+    function makeZip(files) {
+      const u16 = (v) => [v & 0xFF, (v >> 8) & 0xFF];
+      const u32 = (v) => [v & 0xFF, (v >> 8) & 0xFF, (v >> 16) & 0xFF, (v >>> 24) & 0xFF];
+      const enc = new TextEncoder();
+      const parts = [], central = [];
+      let offset = 0, cdirSize = 0;
+      for (const f of files) {
+        const name = enc.encode(f.name), crc = crc32(f.data);
+        const local = new Uint8Array([...u32(0x04034B50), ...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21), ...u32(crc), ...u32(f.data.length), ...u32(f.data.length), ...u16(name.length), ...u16(0)]);
+        parts.push(local, name, f.data);
+        const cd = new Uint8Array([...u32(0x02014B50), ...u16(20), ...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21), ...u32(crc), ...u32(f.data.length), ...u32(f.data.length), ...u16(name.length), ...u16(0), ...u16(0), ...u16(0), ...u16(0), ...u32(0), ...u32(offset)]);
+        central.push(cd, name);
+        cdirSize += cd.length + name.length;
+        offset += local.length + name.length + f.data.length;
+      }
+      const eocd = new Uint8Array([...u32(0x06054B50), ...u16(0), ...u16(0), ...u16(files.length), ...u16(files.length), ...u32(cdirSize), ...u32(offset), ...u16(0)]);
+      return new Blob([...parts, ...central, eocd], { type: 'application/zip' });
+    }
 
     // 保存到相册（移动端）：网页无法静默写入系统相册，这里展示全尺寸原图并提示长按存储——
     // 长按 →「存储到照片」即进相册，不经分享面板（经面板发给微信仍会被压缩，故不走那条路）；

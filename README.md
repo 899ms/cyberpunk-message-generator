@@ -51,7 +51,7 @@ This project is a joint effort by two creators:
   - 暗红细字：Play
   - 消息体西文：Rajdhani（西文字重可配 `msgWeight`，中文保持常规）
 - **大量可配置字段**：脚本顶部 `CONFIG` / `PALETTE` 涵盖尺寸、间距、字号、字重、边距与颜色；中英文的字号、字重均可独立配置
-- **单文件、零依赖**：无需安装、无需构建，浏览器打开即用；导出支持 1x / 2x / 3x 倍率，手机端可点「保存到相册」并长按图片存入系统相册
+- **单文件、零依赖**：无需安装、无需构建，浏览器打开即用；导出支持 1x / 2x / 3x 倍率，手机端可点「保存到相册」并长按图片存入系统相册；除整张导出外，另有「单条气泡 ZIP」——把每条对话气泡单独导出为透明底 PNG 并打包成 zip（每条消息行内也可「导出这条」）
 - **头像**：内置默认头像可选，也支持上传自定义图片
 - **消息类型**：对方（蓝）/ 我方（绿）/ 分隔（带分割线、纯文字）——分隔用于「19:00」「十分钟后」这类时间 / 间隔提示，字体、字号、字重、线与文字间距、线长等均可配（见 CONFIG.divider*）；分隔块间距可逐条选择窄 / 中 / 宽三档
 - **消息图片**：任意消息可附带一张图片，宽度分大 / 中 / 小三档（大 = 内容区宽度、中 = 气泡最大宽度、小 = 气泡最大宽度 × 80%）；图片等比缩放到所选档位宽度（小图放大、不拉伸），高度随原图比例（高度上限 1200px）
@@ -64,7 +64,7 @@ This project is a joint effort by two creators:
   - Dark-red small text: Play
   - Western letters in message bubbles: Rajdhani (weight configurable via `msgWeight`; CJK text stays regular)
 - **Extensive configurable fields**: `CONFIG` / `PALETTE` at the top of the script cover sizes, spacing, font sizes, weights, margins and colors; font sizes and weights can be configured independently for Chinese and English
-- **Single file, zero dependencies**: no installation or build needed — just open it in a browser; export supports 1x / 2x / 3x scale, and on mobile "Save to Photos" + press-and-hold stores the image straight to the photo library
+- **Single file, zero dependencies**: no installation or build needed — just open it in a browser; export supports 1x / 2x / 3x scale, and on mobile "Save to Photos" + press-and-hold stores the image straight to the photo library; besides the full-image export, "Bubbles ZIP" exports every message bubble as a transparent PNG packed into a ZIP (each message row also offers "Export this")
 - **Avatars**: choose from the bundled default avatars, or upload your own image
 - **Message types**: Other (blue) / Me (green) / Divider (with lines, or text-only) — dividers are for "19:00" / "ten minutes later" style separators; font, size, weight, line-to-text gap, line length etc. are all configurable (see CONFIG.divider*); divider spacing is selectable per divider (narrow / medium / wide)
 - **Message images**: attach an image to any message — three width tiers (Large = content width, Medium = max bubble width, Small = max bubble width × 80%); images scale proportionally to the selected tier width (small images enlarged, never stretched); height follows the source aspect ratio (max height 1200px)
@@ -115,7 +115,7 @@ The repository bundles 15 character avatars (all are `avatar-*.png` files in the
    - 直接双击即可使用；
    - 更推荐用本地服务器打开（头像与导出不受浏览器本地安全限制）：在本目录运行 `python -m http.server`（macOS 可能需要 `python3 -m http.server`），然后访问 `http://localhost:8000/cyber-message.html`
 3. 在左侧面板填写用户名、选择头像、编辑消息列表（对方 = 蓝，我方 = 绿）
-4. 选择导出倍率，点击「导出 PNG」
+4. 选择导出倍率，点击「导出 PNG」（或点「单条气泡 ZIP」导出气泡包；每条消息行内也有「导出这条」）
 5. 手机端：点「保存到相册」，长按图片选择「存储到照片」存入系统相册；发微信时请在微信聊天里用「+ → 相册」选择该图并勾选「原图」发送
 
 > 直接双击（file://）打开时，导出含本地头像的 PNG 可能被浏览器安全策略拦截，按页面弹窗提示操作一次即可自动完成导出；或改用本地服务器方式。
@@ -127,7 +127,7 @@ The repository bundles 15 character avatars (all are `avatar-*.png` files in the
    - double-click it to start directly;
    - opening via a local server is recommended (avatars and export are not affected by browser local-security restrictions): run `python -m http.server` in this directory (on macOS you may need `python3 -m http.server`), then visit `http://localhost:8000/cyber-message.html`
 3. In the left panel, fill in the username, choose an avatar, and edit the message list (Other = blue, Me = green)
-4. Pick an export scale and click「导出 PNG」/「Export PNG」
+4. Pick an export scale and click「导出 PNG」/「Export PNG」 (or click "Bubbles ZIP" for a per-bubble transparent PNG pack; each message row also offers "Export this")
 5. On mobile: tap "Save to Photos" and long-press the image to save it to your photo library; when sending it on WeChat, pick the image via "+ → Albums" inside the chat and tick "Original"
 
 > When opened by double-click (file://), exporting a PNG that includes a local avatar may be blocked by browser security policies. Follow the on-page dialog once and the export will complete automatically; or use a local server instead.
