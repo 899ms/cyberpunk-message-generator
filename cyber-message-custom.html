@@ -322,27 +322,122 @@
       letter-spacing: 1px;
       white-space: nowrap;
     }
-
-    /* 「完全自定义版」入口（顶部胶囊链接） */
-    .custom-link {
-      margin: 0 0 12px;
+    /* ★ 自定义参数面板（完全自定义版） */
+    .cfg-box {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #0b0b16;
+      padding: 6px 10px 10px;
+      margin-bottom: 14px;
     }
 
-    .custom-link a {
-      display: inline-block;
-      padding: 4px 12px;
-      font-size: 12px;
-      letter-spacing: .5px;
+    .cfg-box > summary {
+      cursor: pointer;
+      font-size: 13px;
+      letter-spacing: 1px;
       color: var(--cyan);
-      text-decoration: none;
-      border: 1px solid rgba(0, 246, 255, .4);
-      border-radius: 999px;
-      background: rgba(0, 246, 255, .06);
+      padding: 3px 0;
     }
 
-    .custom-link a:hover {
-      background: rgba(0, 246, 255, .16);
+    .cfg-box .cfg-sub {
+      color: #5f7188;
+      font-size: 11px;
+      letter-spacing: 0;
+      margin-left: 6px;
     }
+
+    .cfg-actions {
+      display: flex;
+      gap: 8px;
+      margin: 6px 0 4px;
+    }
+
+    .cfg-btn {
+      flex: 1;
+      background: #131327;
+      color: #cfe8ff;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 5px 8px;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .cfg-btn:hover {
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    .cfg-note {
+      font-size: 11px;
+      color: #5f7188;
+      line-height: 1.7;
+      margin: 2px 0 6px;
+    }
+
+    .cfg-group {
+      margin-top: 6px;
+      border-top: 1px solid #1b1b2e;
+      padding-top: 4px;
+    }
+
+    .cfg-group > summary {
+      cursor: pointer;
+      font-size: 12px;
+      color: #8fa3bd;
+      letter-spacing: .5px;
+    }
+
+    .cfg-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 6px 0;
+    }
+
+    .cfg-row label {
+      flex: 1 1 auto;
+      margin: 0;
+      font-size: 11px;
+      letter-spacing: 0;
+      color: #7f90a8;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .cfg-row input[type=color] {
+      flex: 0 0 auto;
+      width: 36px;
+      height: 24px;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: none;
+      cursor: pointer;
+    }
+
+    .cfg-row input[type=number],
+    .cfg-row input[type=text] {
+      flex: 0 0 150px;
+      width: 150px;
+      padding: 3px 6px;
+      font-size: 12px;
+      letter-spacing: 0;
+      background: #0b0b16;
+      color: #eaf7ff;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+    }
+
+    .cfg-row input[type=checkbox] {
+      flex: 0 0 auto;
+      width: 16px;
+      height: 16px;
+      accent-color: var(--cyan);
+    }
+
 
     .env {
       display: flex;
@@ -444,8 +539,16 @@
           <button type="button" class="lang-btn" data-lang="en">EN</button>
         </div>
       </div>
-      <!-- 「完全自定义版」入口：界面里直接调参数与配色（独立文件 cyber-message-custom.html） -->
-      <p class="custom-link"><a href="./cyber-message-custom.html" data-i18n="customLink">★ 完全自定义版：在界面里直接调参数与配色 →</a></p>
+      <!-- ★ 自定义参数（完全自定义版）：控件由脚本按 CONFIG / PALETTE 自动生成 -->
+      <details id="cfgBox" class="cfg-box" open>
+        <summary>★ <span data-i18n="cfgTitle">自定义参数</span><span class="cfg-sub" data-i18n="cfgSub">即时生效 · 自动记住</span></summary>
+        <div class="cfg-actions">
+          <button type="button" id="cfgReset" class="cfg-btn" data-i18n="cfgReset">恢复默认</button>
+          <button type="button" id="cfgCopy" class="cfg-btn" data-i18n="cfgCopy">复制配置代码</button>
+        </div>
+        <p class="cfg-note" data-i18n="cfgNote">改动即时生效，并记忆在本机浏览器（刷新不丢）。想永久保存 / 分享：点「复制配置代码」，把内容贴回本文件顶部的 CONFIG / PALETTE。</p>
+        <div id="cfgRows"></div>
+      </details>
 
       <!-- 实时预览提示：移动端横屏后，右侧即为实时预览区 -->
       <div id="rotateHint" class="rotate-hint" data-i18n="rotateHint">↻ 把手机横过来，即可实时预览</div>
@@ -504,7 +607,7 @@
         · 双击打开时头像可正常显示；导出 PNG 有可能会被浏览器安全限制拦截，按弹窗提示选择一次图片文件即可自动导出。<br />
         · 手机端点「保存到相册」，长按图片选择「存储到照片」存入相册；之后从相册转发（微信勾选「原图」）可避免聊天软件二次压缩。<br />
         · 「单条气泡 ZIP」= 每条气泡单独一张 PNG（透明底）的集合包；只有气泡本身，不带背景 / 头像 / 联系人名字，分隔消息也不含在内。<br />
-        · 所有尺寸、间距、颜色参数均可改：见脚本顶部 CONFIG / PALETTE。
+        · 本文件为「可编辑版」：所有尺寸、间距、颜色均可在脚本顶部 CONFIG / PALETTE 中修改（原版为 cyber-message.html）。
       </p>
     </aside>
     <main class="stage">
@@ -522,114 +625,134 @@
   <script> "use strict";
 
     /* ============================================================
-       画布配置（尺寸 / 间距 / 字号 = 可修改变量）
+       ★ 可编辑版配置区（本文件是可编辑副本；原版：cyber-message.html）
+       ------------------------------------------------------------
+       怎么改：① 推荐——在页面顶部「★ 自定义参数」面板里直接调（即时生效、自动记住）
+                ② 也可以改下面的数字 / 颜色 → 保存本文件 → 刷新页面
+       排列顺序 = 改动频率：① 最常改 → ⑧ 基本不用动，越靠前越值得先看
+       改坏了没关系：从仓库重新下载本文件即可恢复默认
        ============================================================ */
     const CONFIG = {
-      width: 1200,               // 画布逻辑宽度（px）
-      avatarW: 150,               // 头像显示宽度（px）；高度按图片比例自动（不拉伸）
-      avatarMarginX: 15,           // 头像左边距（px）：头像左缘距画布左缘（0 = 贴左缘）
-      avatarMarginY: 35,           // 头像顶边距（px）：头像顶缘距画布顶缘（0 = 贴顶缘）
-      gradHeight: 600,           // 顶部/底部渐变红黑带的高度（仅观感，不影响图片高度）
-      marginLeft: 154,            // 左边距：画布左缘 →「消息」下划线左端（= 底部暗红线左端）；icon x = marginLeft + hdrLinePadX，头部与消息区均由此派生
-      marginRight: 50,           // 右边距：上方暗红线右端（= 底部暗红线右端 = 我方气泡右端）→ 画布右缘
+      /* ---------- ① 消息文字与气泡外观（最常改） ---------- */
+      msgFontSize: 28,             // 消息字号（px）
+      msgWeight: 600,              // 西文字重（Rajdhani 400/500/600/700；中文固定常规 400）
+      msgStretchEn: 1.2,           // 英文消息文字垂直拉长倍率（1 = 原始；1.2 = 拉长 20%；仅英文生效）
+      msgLineHeight: 42,           // 多行消息的行间距（px）
+      maxBubbleRatio: 0.75,        // 气泡最大宽度 = 中间区宽度 × 此比例
+      bubblePadX: 16,              // 气泡内左右留白（px）
+      bubblePadY: 16,              // 气泡内上下留白（px）
+      bevel: 14,                   // 气泡斜角切角高度（px）
+      tailFront: 15,               // 尾巴前沿距气泡侧壁（px）
+      tailSlope: 10,               // 尾巴斜边的水平宽度（越小越陡）
+      tailDrop: 10,                // 尾巴向下探出的高度（px）
+      borderW: 2,                  // 气泡描边宽度（px）
+      minBubbleW: 80,              // 气泡主体最小宽度（px）
+      gapBetween: 10,              // 相邻气泡之间的间隔（px）
+
+      /* ---------- ② 字体（想换字体改这里） ---------- */
       fontFamily: '"Rajdhani","PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif', // 消息正文（中文：苹方 → 思源黑体 → 微软雅黑）
-      fontMeta: '"Play","Rajdhani",sans-serif',                       // 暗红细字（hdrCode / hdrVer）
-      fontHeaderZh: '"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif',   // 中文画布标题 / 用户名（苹方 → 思源黑体 → 微软雅黑）
+      fontHeaderZh: '"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif',   // 中文画布标题 / 用户名
       fontHeaderEn: '"BlenderPro","Rajdhani","Microsoft YaHei","PingFang SC",sans-serif', // 英文画布标题（MESSAGES）
-      fontUserNameEn: '"Rajdhani","PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif', // 英文用户名（Rajdhani：Blender Pro 部分字符不支持；中文回退同正文）
+      fontUserNameEn: '"Rajdhani","PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif', // 英文用户名
+      fontMeta: '"Play","Rajdhani",sans-serif',                       // 暗红细字（TRN / VER）
 
-      /* ---- 头部（全部可配置颜色/位置/字号） ---- */
-      hdrCode: 'TRN_TCLAS_800095', // 顶部细红字文本
-      hdrCodeSize: 19,             // 细红字字号
-      hdrCodeY: 150,               // 顶部细红字基线 y（唯一绝对Y锚，其余Y全部由此派生）
-      hdrCodeToIconGapY: 16,       // 细红字文字下缘 → 信封 icon 顶的距离
-
-      hdrIconSize: 40,             // 信封 icon 尺寸（高 = 0.65×）
-      hdrIconGap: 16,              // 信封 icon 右缘与「消息」左缘间距
-
-      hdrTitleSize: 34,            // “消息”字号（中文）
-      hdrTitleSizeEn: 43,          // “MESSAGES”字号（英文，单独可调）
-      hdrTitleSpacingEn: -3,        // “MESSAGES”字符间距（px；0=默认；负值收紧；仅英文）
-      hdrTitleWeight: 400,         // “消息”字重（常规=400）；中心Y = 信封icon中心Y（基线由字形反推）
-      hdrArrowGap: 5,              // “消息”右缘与“>”箭头左缘间距
-      hdrArrowSize: 34,            // “>”箭头包围盒尺寸（对照 arrow.svg）；中心Y = 信封icon中心Y
-
-      hdrLineGapY: 20,             // 信封 icon 下缘 → 青色下划线（线心）的距离
-      hdrLineW: 4,                 // 青色下划线粗细
-      hdrLinePadX: 16,             // 下划线两端延伸长度；icon 左端 x = marginLeft + 此值（下划线左端比 icon 多伸出的量）
-      hdrUserNameGap: 40,          // 用户名与箭头终点间距
-      hdrUserNameSize: 45,         // 用户名字号（中文；中心Y = 信封icon中心Y；基线由字形反推）
-      hdrUserNameSizeEn: 50,       // 用户名字号（英文，单独可调；中心Y = 信封icon中心Y；基线由字形反推）
-      hdrUserNameWeight: 400,      // 用户名字重（中文；400=常规）
-      hdrUserNameWeightEn: 500,    // 用户名字重（英文；Rajdhani Medium，可调 400/500/600/700）
-      hdrUserNameUpperEn: true,    // 英文用户名自动转大写（true/false；仅影响画布显示，不改输入框）
-      hdrUserNameSpacingEn: -4,     // 英文用户名字符间距（px；0=默认；仅英文）
-      hdrUserNameLineGap: 10,      // 用户名下划线Y = 用户名字形下缘 + 此值
-      hdrUserNameLineExtend: 10,   // 用户名青色下划线两端延伸长度（px，在文本宽度基础上各向外多延伸）
-      hdrUserNameLineExtGap: 15,   // 暗红延伸线与用户名下划线的水平间距（起点从下线右端右移）
-      hdrUserNameLineExtW: 1,      // 暗红延伸线粗细
-      hdrVer: 'VER_M6A6T6I',       // 暗红延伸线上方的细红字文本
-      hdrVerSize: 16,              // 细红字字号
-      hdrVerGapY: 7,               // 暗红延伸线 → VER 文字下缘的距离
-      hdrVerRightPad: 2,           // 细红字向右补偿像素（抵消末尾字形自带留白，0=按文本右缘对齐）
-      msgStartGap: 42,             // 消息区起始 y = 青色下划线下缘 + 此偏移
-      msgIndent: 30,               // 消息区（气泡区左起点 x = 消息 icon 左缘 + 此缩进（icon x = marginLeft+hdrLinePadX=170 → 200）
-      msgFontSize: 28,
-      msgWeight: 600,              // 西文字重（Rajdhani；中英文通用）—— 中文/CJK 固定常规 400，见 splitRuns
-      msgStretchEn: 1.2,             // 英文消息文字垂直拉长倍率（1 = 原始；>1 纵向拉长，如 1.2 = 拉长 20%；仅英文生效）
-      msgImgSmallRatio: 0.8,       // 「小」档图片宽度 = 气泡最大宽度 × 此比例（大 = 内容区全宽；中 = 气泡最大宽度；高度均随比例缩放）
-      msgImgMaxH: 1200,             // 气泡内图片最大高度（px；0 = 不限制；等比缩放不拉伸）
-      msgImgGapY: 20,              // 图片与其上方文字的间距（px；图片贴气泡内底边，底部留白复用 bubblePadY）
-      msgLineHeight: 42,           // 多行时行与行基线间距
-      bubblePadX: 16,
-      bubblePadY: 16,              // 单行文字上下留白（气泡最小高度 = 字号字形高度 + 2×此值）
-      fontAscent: 24,             // 28px 字体的字形基线以上高度（兜底值，会优先用浏览器实测）
-      fontDescent: 8,             // 28px 字体的字形基线以下高度（兜底值）
-      gapBetween: 10,            // 气泡间隔
-      maxBubbleRatio: 0.75,      // 气泡最大宽度 = 中间区宽度 × 此比例
-      bevel: 14,                 // 斜角切角高度（左上/右下斜边）
-      tailDrop: 10,              // 尾巴垂直下落高度（px）：尾巴尖端低于气泡底边的距离（原固定等于 bevel，现独立可调）
-      tailFront: 15,             // 尾巴前沿距气泡左壁（镜像后为右壁）
-      tailSlope: 10,             // 尾巴斜边的水平宽度（越小越陡，越贴垂直方向；原45°时为 bevel）
-      minBubbleW: 80,            // 气泡主体最小宽度（≥ bevel + tailFront）
-      borderW: 2,                // 气泡描边宽度
-      bottomGap: 200,            // 底部留白：图片高度 = 内容高度 + 此值（与 gradHeight 无关）；若需底部红线可见需 bottomGap + bevel > bottomLineGap（默认即 > 140）
-
-      bottomLineGap: 100,        // 底部暗红线距最后消息底边的距离（左右端 = marginLeft / width - marginRight）
-
-      /* ---- 分隔（时间 / 间隔提示）：两种样式，均为居中一行文字 ---- */
-      dividerFont: '"Rajdhani","PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif', // 分隔文字字体（中文同正文栈）
-      dividerFontSize: 22,         // 分隔文字字号
+      /* ---------- ③ 分隔消息（“19:00”“十分钟后”这类） ---------- */
+      dividerFont: '"Rajdhani","PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif',
+      dividerFontSize: 22,         // 分隔文字字号（px）
       dividerWeight: 400,          // 分隔文字字重
-      dividerLineGapX: 14,         // 分割线与文字的间距（左右各一段；仅「带分割线」样式生效）
-      dividerLineLen: 30,          // 分割线长度（px，文字两侧各一条短线段；0 = 不画线）
-      dividerLineW: 2,             // 分割线粗细
-      dividerPadY: 25,             // 分隔块上下留白的默认值（在气泡间隔 gapBetween 之外额外增加；每条分隔可在行内选择 窄25 / 中50 / 宽80）
+      dividerLineGapX: 14,         // 分割线与文字的间距（仅「带分割线」样式生效）
+      dividerLineLen: 30,          // 分割线长度（px；0 = 不画线）
+      dividerLineW: 2,             // 分割线粗细（px）
+      dividerPadY: 25,             // 分隔块上下留白的默认值（每条分隔可在行内选择 窄25 / 中50 / 宽80）
+
+      /* ---------- ④ 消息图片（气泡里的图片） ---------- */
+      msgImgSmallRatio: 0.8,       // 「小」档图片宽度 = 气泡最大宽度 × 此比例
+      msgImgMaxH: 1200,            // 气泡内图片最大高度（px；0 = 不限制）
+      msgImgGapY: 20,              // 图片与其上方文字的间距（px）
+
+      /* ---------- ⑤ 页头（标题 / 用户名 / 信封图标） ---------- */
+      hdrCode: 'TRN_TCLAS_800095', // 顶部细红字文本
+      hdrCodeSize: 19,             // 细红字字号（px）
+      hdrCodeY: 150,               // 顶部细红字基线 y（唯一绝对 Y 锚，其余 Y 全部由此派生）
+      hdrCodeToIconGapY: 16,       // 细红字下缘 → 信封 icon 顶的距离（px）
+      hdrIconSize: 40,             // 信封 icon 尺寸（高 = 0.65×）
+      hdrIconGap: 16,              // 信封 icon 右缘与「消息」左缘间距（px）
+      hdrTitleSize: 34,            // “消息”字号（中文）
+      hdrTitleSizeEn: 43,          // “MESSAGES”字号（英文）
+      hdrTitleSpacingEn: -3,       // “MESSAGES”字符间距（px；0 = 默认；负值收紧；仅英文）
+      hdrTitleWeight: 400,         // “消息”字重
+      hdrArrowGap: 5,              // “消息”右缘与 “>” 箭头左缘间距（px）
+      hdrArrowSize: 34,            // “>” 箭头包围盒尺寸
+      hdrLineGapY: 20,             // 信封 icon 下缘 → 青色下划线（线心）的距离（px）
+      hdrLineW: 4,                 // 青色下划线粗细（px）
+      hdrLinePadX: 16,             // 下划线两端延伸长度（px）
+      hdrUserNameGap: 40,          // 用户名与箭头终点间距（px）
+      hdrUserNameSize: 45,         // 用户名字号（中文）
+      hdrUserNameSizeEn: 50,       // 用户名字号（英文）
+      hdrUserNameWeight: 400,      // 用户名字重（中文）
+      hdrUserNameWeightEn: 500,    // 用户名字重（英文，400/500/600/700）
+      hdrUserNameUpperEn: true,    // 英文用户名自动转大写（true / false）
+      hdrUserNameSpacingEn: -4,    // 英文用户名字符间距（px；仅英文）
+      hdrUserNameLineGap: 10,      // 用户名下划线 Y = 用户名字形下缘 + 此值
+      hdrUserNameLineExtend: 10,   // 用户名下划线两端延伸长度（px）
+      hdrUserNameLineExtGap: 15,   // 暗红延伸线与用户名下划线的水平间距（px）
+      hdrUserNameLineExtW: 1,      // 暗红延伸线粗细（px）
+      hdrVer: 'VER_M6A6T6I',       // 暗红延伸线上方的细红字文本
+      hdrVerSize: 16,              // 细红字字号（px）
+      hdrVerGapY: 7,               // 暗红延伸线 → VER 文字下缘的距离（px）
+      hdrVerRightPad: 2,           // 细红字向右补偿像素（0 = 按文本右缘对齐）
+
+      /* ---------- ⑥ 头像 ---------- */
+      avatarW: 150,                // 头像显示宽度（px；高度按图片比例自动）
+      avatarMarginX: 15,           // 头像左边距（px）
+      avatarMarginY: 35,           // 头像顶边距（px）
+
+      /* ---------- ⑦ 画布与布局基准（一般不用动；改动基准点请谨慎） ---------- */
+      width: 1200,                 // 画布逻辑宽度（px）
+      gradHeight: 600,             // 顶部/底部渐变红黑带高度（仅观感，不影响图片高度）
+      marginLeft: 154,             // 左边距：画布左缘 →「消息」下划线左端（头部与消息区均由此派生）
+      marginRight: 50,             // 右边距：画布右缘 ← 暗红线 / 我方气泡右端
+      msgIndent: 30,               // 消息区缩进（气泡区左起点相对 icon 的缩进）
+      msgStartGap: 42,             // 消息区起始 y = 青色下划线下缘 + 此偏移（px）
+      bottomGap: 200,              // 底部留白：图片高度 = 内容高度 + 此值（px）
+      bottomLineGap: 100,          // 底部暗红线距最后消息底边的距离（px）
+
+      /* ---------- ⑧ 度量兜底值（技术项，一般不用改） ---------- */
+      fontAscent: 24,              // 28px 字体基线以上高度（浏览器实测优先，此项仅兜底）
+      fontDescent: 8,              // 28px 字体基线以下高度（兜底）
     };
     /* 配色（全部可修改） */
+    /* ============================================================
+       配色（全部可修改；顺序 = 改动频率：① 气泡 → ② 分隔 → ③ 页头 → ④ 背景）
+       ============================================================ */
     const PALETTE = {
-      red: '#3b0507',          // 渐变红
-      black: '#050505',          // 底色黑
-      cyan: '#7ee2f8',          // 图标 / “消息”霓虹青
+      /* ---------- ① 气泡配色（最常改） ---------- */
+      blueBg: '#181c1d',           // 对方气泡底色（蓝）
+      blueBorder: '#56e9e3',       // 对方气泡边框（蓝）
+      bubbleText: '#66cecd',       // 对方气泡文字（蓝方）
+      greenBg: '#1e4e3e',          // 我方气泡底色（绿）
+      greenBorder: '#4bdfad',      // 我方气泡边框（绿）
+      bubbleTextMe: '#49e0ad',     // 我方气泡文字（绿方）
+      placeholder: '#5b6c80',      // 空列表占位文字
 
-      userColor: '#7ee2f8',     // 用户名
-      userNameOutline: '#7ee2f8',
+      /* ---------- ② 分隔消息配色 ---------- */
+      dividerText: '#8fa3bd',      // 分隔文字颜色
+      dividerLine: '#3a4a5a',      // 分割线颜色
 
-      hdrCodeColor: '#621914',   // 顶部细红字
-      hdrIconColor: '#7ee2f8',   // 信封 icon
-      hdrTitleColor: '#7ee2f8',   // “消息”
-      hdrArrowColor: '#7ee2f8',   // “>”
-      hdrLineColor: '#7ee2f8',   // 下划线
+      /* ---------- ③ 页头配色 ---------- */
+      cyan: '#7ee2f8',             // 图标 / “消息”霓虹青
+      userColor: '#7ee2f8',        // 用户名
+      userNameOutline: '#7ee2f8',  // 用户名描边
+      hdrCodeColor: '#621914',     // 顶部细红字
+      hdrIconColor: '#7ee2f8',     // 信封 icon
+      hdrTitleColor: '#7ee2f8',    // “消息”
+      hdrArrowColor: '#7ee2f8',    // “>”
+      hdrLineColor: '#7ee2f8',     // 下划线
       userNameLineExtColor: '#a43a2e', // 用户名下划线右侧的暗红延伸线
-      blueBg: '#181c1d',     // 对方气泡底色（蓝）
-      blueBorder: '#56e9e3',     // 对方气泡边框（蓝）
-      greenBg: '#1e4e3e',     // 我方气泡底色（绿）
-      greenBorder: '#4bdfad',     // 我方气泡边框（绿）
-      bubbleText: '#66cecd',     // 对方文字颜色（蓝方气泡）
-      bubbleTextMe: '#49e0ad',    // 我方文字颜色（绿方气泡）
-      placeholder: '#5b6c80',     // 空列表占位文字
-      dividerText: '#8fa3bd',     // 分隔文字颜色
-      dividerLine: '#3a4a5a',     // 分割线颜色
+
+      /* ---------- ④ 背景 ---------- */
+      red: '#3b0507',              // 渐变红
+      black: '#050505',            // 底色黑
     };
     let cv = document.getElementById('cv');
     let ctx = cv.getContext('2d');
@@ -1230,10 +1353,16 @@
         exportBubblesBtn: '单条气泡 ZIP',
         exportBubblesTitle: '每条气泡单独导出为透明底 PNG 并打包成 ZIP 合集；只有气泡本身，不含背景 / 头像 / 联系人名字',
         exportOne: '导出这条',
+        cfgTitle: '自定义参数',
+        cfgSub: '即时生效 · 自动记住',
+        cfgReset: '恢复默认',
+        cfgCopy: '复制配置代码',
+        cfgCopied: '已复制 ✓',
+        cfgCopyPrompt: '复制下面的配置代码：',
+        cfgNote: '改动即时生效，并记忆在本机浏览器（刷新不丢）。想永久保存 / 分享：点「复制配置代码」，把内容贴回本文件顶部的 CONFIG / PALETTE。',
         saveBtn: '保存到相册（移动端点这个）',
         saveHint: '长按图片 →「存储到照片」（iOS）/「保存图片」（Android）',
         rotateHint: '↻ 把手机横过来，即可实时预览',
-        customLink: '★ 完全自定义版：在界面里直接调参数与配色 →',
         saveTip: '提示：<b>不要直接分享到微信</b>——微信会压缩图片、导致色彩不准。正确做法：先「保存到相册」，再在微信里从相册选图、<b>勾选「原图」</b>发送。',
         sideOther: '对方 · 蓝',
         sideMe: '我方 · 绿',
@@ -1249,7 +1378,7 @@
         delTitle: '删除',
         msgPh: '输入消息内容…',
         canvasPlaceholder: '（请输入聊天消息）',
-        hint: '· 画布逻辑宽度 1200px，高度随消息自动生成。<br />· 头像读取同目录图片文件，替换同名文件即可换图。<br />· 双击打开时头像可正常显示；导出 PNG 有可能会被浏览器安全限制拦截，按弹窗提示选择一次图片文件即可自动导出。<br />· 手机端点「保存到相册」，长按图片选择「存储到照片」存入相册；之后从相册转发（微信勾选「原图」）可避免聊天软件二次压缩。<br />· 「单条气泡 ZIP」= 每条气泡单独一张 PNG（透明底）的集合包；只有气泡本身，不带背景 / 头像 / 联系人名字，分隔消息也不含在内。<br />· 所有尺寸、间距、颜色参数均可改：见脚本顶部 CONFIG / PALETTE。',
+        hint: '· 画布逻辑宽度 1200px，高度随消息自动生成。<br />· 头像读取同目录图片文件，替换同名文件即可换图。<br />· 双击打开时头像可正常显示；导出 PNG 有可能会被浏览器安全限制拦截，按弹窗提示选择一次图片文件即可自动导出。<br />· 手机端点「保存到相册」，长按图片选择「存储到照片」存入相册；之后从相册转发（微信勾选「原图」）可避免聊天软件二次压缩。<br />· 「单条气泡 ZIP」= 每条气泡单独一张 PNG（透明底）的集合包；只有气泡本身，不带背景 / 头像 / 联系人名字，分隔消息也不含在内。<br />· 本文件为「可编辑版」：所有尺寸、间距、颜色均可在脚本顶部 CONFIG / PALETTE 中修改（原版为 cyber-message.html）。',
       },
       en: {
         appTitle: 'Cyberpunk Chat Log Generator',
@@ -1274,10 +1403,16 @@
         exportBubblesBtn: 'Bubbles ZIP',
         exportBubblesTitle: 'Export every bubble as a transparent PNG packed into a ZIP — bubble only: no background, avatar or contact name',
         exportOne: 'Export this',
+        cfgTitle: 'Customize',
+        cfgSub: 'live · auto-saved',
+        cfgReset: 'Reset defaults',
+        cfgCopy: 'Copy config code',
+        cfgCopied: 'Copied ✓',
+        cfgCopyPrompt: 'Copy the config code below:',
+        cfgNote: 'Changes apply instantly and are remembered in this browser (survives refresh). To keep or share them: click "Copy config code" and paste the result over CONFIG / PALETTE at the top of this file.',
         saveBtn: 'Save to Photos (use on mobile)',
         saveHint: 'Press and hold the image → "Save to Photos" (iOS) / "Download image" (Android)',
         rotateHint: '↻ Rotate to landscape for live preview',
-        customLink: '★ Customizable version: tweak colors & parameters right in the UI →',
         saveTip: 'Tip: <b>do not share directly to WeChat</b> — it recompresses images and shifts colors. Instead: tap "Save to Photos" first, then pick the image from your album in WeChat and <b>tick "Original"</b>.',
         sideOther: 'Other · Blue',
         sideMe: 'Me · Green',
@@ -1293,7 +1428,7 @@
         delTitle: 'Delete',
         msgPh: 'Type a message…',
         canvasPlaceholder: '(Enter chat messages)',
-        hint: '· Canvas logical width 1200px; height grows with the messages.<br />· Avatar images load from files in the same folder; replace the file to change it.<br />· When opened by double-click, the avatar displays fine, but PNG export may sometimes be blocked by browser security. Follow the dialog to pick the image file once and export resumes automatically.<br />· On mobile, tap "Save to Photos" and press-and-hold the image to store it in your photo library; then forward from the album (tick "Original" in WeChat) to avoid messaging-app compression.<br />· What is "Bubbles ZIP"? A pack of per-bubble PNGs (transparent); each file contains only the bubble itself — no background, avatar or contact name, and dividers are excluded.<br />· All sizes, spacing and colors are configurable: see CONFIG / PALETTE at the top of the script.',
+        hint: '· Canvas logical width 1200px; height grows with the messages.<br />· Avatar images load from files in the same folder; replace the file to change it.<br />· When opened by double-click, the avatar displays fine, but PNG export may sometimes be blocked by browser security. Follow the dialog to pick the image file once and export resumes automatically.<br />· On mobile, tap "Save to Photos" and press-and-hold the image to store it in your photo library; then forward from the album (tick "Original" in WeChat) to avoid messaging-app compression.<br />· What is "Bubbles ZIP"? A pack of per-bubble PNGs (transparent); each file contains only the bubble itself — no background, avatar or contact name, and dividers are excluded.<br />· This is the editable copy: all sizes, spacing and colors can be changed in CONFIG / PALETTE at the top of the script (the original file is cyber-message.html).',
       },
     };
 
@@ -1335,6 +1470,7 @@
       });
       try { localStorage.setItem('cm-lang', lang); } catch (e) { /* file:// 下可能抛错 */ }
       rebuildRows();
+      cfgBuild();
       schedule();
     }
     document.querySelectorAll('.lang-btn').forEach((btn) => {
@@ -1709,6 +1845,199 @@
       $('saveTip').style.display = 'block';
       $('rotateHint').style.display = 'inline-block';   // 实时预览提示：仅移动端显示
     }
+
+    /* ================= ★ 自定义参数面板（完全自定义版） =================
+       控件按 CONFIG / PALETTE 自动生成：'P' = PALETTE（取色器），'C' = CONFIG（数字 / 开关 / 文本）
+       分组顺序 = 改动频率（配色：气泡最前；参数：消息文字与气泡 → … → 布局基准 / 兜底值）
+       表项格式：[区, 中文组名, 英文组名, 默认展开, [[键, 中文标签, 英文标签], …]] */
+    const CFG_GROUPS = [
+      ['P', '配色 · ① 气泡（最常改）', 'Colors · ① Bubbles (most used)', true, [
+        ['blueBg', '对方气泡底色', 'Bubble fill (other)'], ['blueBorder', '对方气泡边框', 'Bubble border (other)'],
+        ['bubbleText', '对方气泡文字', 'Bubble text (other)'], ['greenBg', '我方气泡底色', 'Bubble fill (me)'],
+        ['greenBorder', '我方气泡边框', 'Bubble border (me)'], ['bubbleTextMe', '我方气泡文字', 'Bubble text (me)'],
+        ['placeholder', '空列表占位文字', 'Placeholder text'],
+      ]],
+      ['P', '配色 · ② 分隔消息', 'Colors · ② Divider', false, [
+        ['dividerText', '分隔文字', 'Divider text'], ['dividerLine', '分割线', 'Divider line'],
+      ]],
+      ['P', '配色 · ③ 页头', 'Colors · ③ Header', false, [
+        ['cyan', '霓虹青（图标 / 标题）', 'Neon cyan (icon/title)'], ['userColor', '用户名', 'User name'],
+        ['userNameOutline', '用户名描边', 'User name outline'], ['hdrCodeColor', '顶部细红字', 'Top thin red text'],
+        ['hdrIconColor', '信封图标', 'Envelope icon'], ['hdrTitleColor', '“消息”', 'Title'],
+        ['hdrArrowColor', '“>” 箭头', 'Arrow “>”'], ['hdrLineColor', '下划线', 'Underline'],
+        ['userNameLineExtColor', '暗红延伸线', 'Dark-red ext. line'],
+      ]],
+      ['P', '配色 · ④ 背景', 'Colors · ④ Background', false, [
+        ['red', '渐变红', 'Gradient red'], ['black', '底色黑', 'Background black'],
+      ]],
+      ['C', '参数 · ① 消息文字与气泡（最常改）', 'Params · ① Message text & bubbles (most used)', true, [
+        ['msgFontSize', '消息字号', 'Message font size'], ['msgWeight', '西文字重', 'Western font weight'],
+        ['msgStretchEn', '英文垂直拉长', 'EN vertical stretch'], ['msgLineHeight', '行间距', 'Line height'],
+        ['maxBubbleRatio', '气泡最大宽度比例', 'Max bubble width ratio'],
+        ['bubblePadX', '气泡左右留白', 'Bubble pad X'], ['bubblePadY', '气泡上下留白', 'Bubble pad Y'],
+        ['bevel', '斜角切角', 'Corner bevel'], ['tailFront', '尾巴前沿', 'Tail front'],
+        ['tailSlope', '尾巴斜边宽', 'Tail slope'], ['tailDrop', '尾巴下落高度', 'Tail drop'],
+        ['borderW', '描边粗细', 'Border width'], ['minBubbleW', '气泡最小宽度', 'Min bubble width'],
+        ['gapBetween', '气泡间隔', 'Bubble gap'],
+      ]],
+      ['C', '参数 · ② 字体', 'Params · ② Fonts', false, [
+        ['fontFamily', '消息正文', 'Message body'], ['fontHeaderZh', '中文标题 / 用户名', 'CN title / user name'],
+        ['fontHeaderEn', '英文标题', 'EN title'], ['fontUserNameEn', '英文用户名', 'EN user name'],
+        ['fontMeta', '暗红细字', 'Dark-red meta text'],
+      ]],
+      ['C', '参数 · ③ 分隔消息', 'Params · ③ Divider', false, [
+        ['dividerFont', '字体', 'Font'], ['dividerFontSize', '字号', 'Font size'],
+        ['dividerWeight', '字重', 'Font weight'], ['dividerLineGapX', '线与文字间距', 'Line–text gap'],
+        ['dividerLineLen', '线长', 'Line length'], ['dividerLineW', '线粗', 'Line width'],
+        ['dividerPadY', '上下留白（行内默认值）', 'Vertical padding (default)'],
+      ]],
+      ['C', '参数 · ④ 消息图片', 'Params · ④ Message images', false, [
+        ['msgImgSmallRatio', '小档宽度比例', 'Small-tier ratio'], ['msgImgMaxH', '高度上限', 'Max height'],
+        ['msgImgGapY', '图文间距', 'Image–text gap'],
+      ]],
+      ['C', '参数 · ⑤ 页头（标题 / 用户名 / 图标）', 'Params · ⑤ Header (title / user name / icon)', false, [
+        ['hdrCode', '顶部细红字文本', 'Top red text'], ['hdrCodeSize', '细红字字号', 'Red text size'],
+        ['hdrCodeY', '细红字基线 Y', 'Red text baseline Y'], ['hdrCodeToIconGapY', '红字 → 图标间距', 'Red text → icon gap'],
+        ['hdrIconSize', '图标尺寸', 'Icon size'], ['hdrIconGap', '图标 → 标题间距', 'Icon → title gap'],
+        ['hdrTitleSize', '“消息”字号', 'Title size (CN)'], ['hdrTitleSizeEn', '“MESSAGES”字号', 'Title size (EN)'],
+        ['hdrTitleSpacingEn', 'MESSAGES 字距', 'MESSAGES spacing'], ['hdrTitleWeight', '“消息”字重', 'Title weight'],
+        ['hdrArrowGap', '箭头左间距', 'Arrow left gap'], ['hdrArrowSize', '箭头尺寸', 'Arrow size'],
+        ['hdrLineGapY', '下划线间距', 'Underline gap'], ['hdrLineW', '下划线粗细', 'Underline width'],
+        ['hdrLinePadX', '下划线延伸', 'Underline extend'], ['hdrUserNameGap', '用户名间距', 'User name gap'],
+        ['hdrUserNameSize', '用户名字号', 'User name size (CN)'], ['hdrUserNameSizeEn', '英文用户名字号', 'User name size (EN)'],
+        ['hdrUserNameWeight', '用户名字重', 'User name weight (CN)'], ['hdrUserNameWeightEn', '英文用户名字重', 'User name weight (EN)'],
+        ['hdrUserNameUpperEn', '英文用户名自动大写', 'EN user name uppercase'],
+        ['hdrUserNameSpacingEn', '英文用户名字距', 'EN user name spacing'],
+        ['hdrUserNameLineGap', '用户名下划线间距', 'User name underline gap'],
+        ['hdrUserNameLineExtend', '用户名下划线延伸', 'User name underline extend'],
+        ['hdrUserNameLineExtGap', '延伸线间距', 'Ext. line gap'], ['hdrUserNameLineExtW', '延伸线粗细', 'Ext. line width'],
+        ['hdrVer', 'VER 文本', 'VER text'], ['hdrVerSize', 'VER 字号', 'VER size'],
+        ['hdrVerGapY', 'VER 间距', 'VER gap'], ['hdrVerRightPad', 'VER 右补偿', 'VER right pad'],
+      ]],
+      ['C', '参数 · ⑥ 头像', 'Params · ⑥ Avatar', false, [
+        ['avatarW', '宽度', 'Width'], ['avatarMarginX', '左边距', 'Left margin'],
+        ['avatarMarginY', '顶边距', 'Top margin'],
+      ]],
+      ['C', '参数 · ⑦ 画布与布局基准（一般不用动）', 'Params · ⑦ Canvas & layout anchors (rarely changed)', false, [
+        ['width', '画布宽度', 'Canvas width'], ['gradHeight', '渐变带高度', 'Gradient band height'],
+        ['marginLeft', '左边距', 'Left margin'], ['marginRight', '右边距', 'Right margin'],
+        ['msgIndent', '消息区缩进', 'Message area indent'], ['msgStartGap', '消息区起始偏移', 'Message area top gap'],
+        ['bottomGap', '底部留白', 'Bottom padding'], ['bottomLineGap', '底部红线距离', 'Bottom line distance'],
+      ]],
+      ['C', '参数 · ⑧ 度量兜底值（技术项）', 'Params · ⑧ Metrics fallbacks (technical)', false, [
+        ['fontAscent', '字形高度兜底', 'Glyph ascent fallback'], ['fontDescent', '字形下沉兜底', 'Glyph descent fallback'],
+      ]],
+    ];
+    const CFG_KEY = 'cm-cfg-custom';
+    const CFG_DEFAULTS = { c: Object.assign({}, CONFIG), p: Object.assign({}, PALETTE) };   // 初始默认值（「恢复默认」用）
+    function cfgLoad() {   // 渲染前应用本机记住的改动（只认当前存在的键，避免旧数据串入）
+      let saved = null;
+      try { saved = JSON.parse(localStorage.getItem(CFG_KEY) || 'null'); } catch (e) { /* 忽略无效值 */ }
+      if (!saved) return;
+      for (const k in saved.c || {}) if (k in CONFIG) CONFIG[k] = saved.c[k];
+      for (const k in saved.p || {}) if (k in PALETTE) PALETTE[k] = saved.p[k];
+    }
+    function cfgSave() {   // 只存与默认值不同的项（改文件里的默认值不会被打架）
+      const c = {}, p = {};
+      for (const k in CONFIG) if (CONFIG[k] !== CFG_DEFAULTS.c[k]) c[k] = CONFIG[k];
+      for (const k in PALETTE) if (PALETTE[k] !== CFG_DEFAULTS.p[k]) p[k] = PALETTE[k];
+      try { localStorage.setItem(CFG_KEY, JSON.stringify({ c: c, p: p })); } catch (e) { /* file:// 下可能抛错 */ }
+    }
+    function cfgBuild() {   // 生成控件（按当前语言渲染；语言切换重建时保留展开状态）
+      const box = $('cfgRows');
+      const prevOpen = [...box.querySelectorAll('.cfg-group')].map((g) => g.open);
+      box.innerHTML = '';
+      const en = LANG === 'en';
+      CFG_GROUPS.forEach((g, gi) => {
+        const [area, titleZh, titleEn, open, keys] = g;
+        const det = document.createElement('details');
+        det.className = 'cfg-group';
+        det.open = prevOpen.length === CFG_GROUPS.length ? prevOpen[gi] : open;
+        const sum = document.createElement('summary');
+        sum.textContent = en ? titleEn : titleZh;
+        det.appendChild(sum);
+        for (const [k, zh, enLabel] of keys) {
+          const val = (area === 'P' ? PALETTE : CONFIG)[k];
+          const row = document.createElement('div');
+          row.className = 'cfg-row';
+          const lab = document.createElement('label');
+          lab.textContent = en ? enLabel : zh;
+          lab.title = k;
+          row.appendChild(lab);
+          const inp = document.createElement('input');
+          if (area === 'P') { inp.type = 'color'; inp.value = val; }
+          else if (typeof val === 'number') { inp.type = 'number'; inp.step = Number.isInteger(val) ? '1' : '0.05'; inp.value = String(val); }
+          else if (typeof val === 'boolean') { inp.type = 'checkbox'; inp.checked = val; }
+          else { inp.type = 'text'; inp.value = String(val); }
+          inp.dataset.key = k;
+          inp.dataset.area = area;
+          inp.addEventListener('input', () => cfgApply(inp, area, k));
+          row.appendChild(inp);
+          det.appendChild(row);
+        }
+        box.appendChild(det);
+      });
+    }
+    function cfgApply(inp, area, key) {
+      const target = area === 'P' ? PALETTE : CONFIG;
+      if (inp.type === 'checkbox') target[key] = inp.checked;
+      else if (inp.type === 'number') {
+        const n = parseFloat(inp.value);
+        if (isNaN(n)) return;
+        target[key] = n;
+      } else target[key] = inp.value;
+      cfgSave();
+      if (key === 'msgImgSmallRatio' || key === 'msgImgMaxH') rebuildRows();   // 行内图片提示文案跟随
+      schedule();
+    }
+    function cfgReset() {
+      Object.assign(CONFIG, CFG_DEFAULTS.c);
+      Object.assign(PALETTE, CFG_DEFAULTS.p);
+      try { localStorage.removeItem(CFG_KEY); } catch (e) { /* 忽略 */ }
+      document.querySelectorAll('#cfgRows input').forEach((inp) => {
+        const v = (inp.dataset.area === 'P' ? PALETTE : CONFIG)[inp.dataset.key];
+        if (inp.type === 'checkbox') inp.checked = v;
+        else inp.value = String(v);
+      });
+      rebuildRows();
+      schedule();
+    }
+    function cfgText() {   // 生成当前配置的代码文本（注释与文件一致用中文；顺序同面板分区）
+      const fmt = (v) => (typeof v === 'string' ? "'" + v + "'" : v);
+      const block = (area, name) => {
+        let s = 'const ' + name + ' = {\n';
+        for (const [a, titleZh, , , keys] of CFG_GROUPS) {
+          if (a !== area) continue;
+          s += '  /* ' + titleZh + ' */\n';
+          for (const [k] of keys) s += '  ' + k + ': ' + fmt((area === 'P' ? PALETTE : CONFIG)[k]) + ',\n';
+        }
+        return s + '};\n';
+      };
+      return block('C', 'CONFIG') + '\n' + block('P', 'PALETTE');
+    }
+    async function cfgCopy() {
+      const text = cfgText();
+      const btn = $('cfgCopy');
+      let ok = false;
+      try { await navigator.clipboard.writeText(text); ok = true; } catch (e) { /* http 非安全上下文会失败，走下面的兜底 */ }
+      if (!ok) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try { ok = document.execCommand('copy'); } catch (e) { /* 再失败就弹窗让用户手动复制 */ }
+        ta.remove();
+      }
+      if (!ok) { window.prompt(L10N[LANG].cfgCopyPrompt, text); return; }
+      btn.textContent = L10N[LANG].cfgCopied;
+      setTimeout(() => { btn.textContent = L10N[LANG].cfgCopy; }, 1600);
+    }
+    cfgLoad();      // 先应用记住的改动（在首次渲染之前）
+    cfgBuild();
+    $('cfgReset').onclick = cfgReset;
+    $('cfgCopy').onclick = cfgCopy;
 
     /* 初始化：先立即渲染一次（字体慢/被墙也不会白屏），字体就绪后再按真实字形重渲染 */
     let initialLang = 'zh';

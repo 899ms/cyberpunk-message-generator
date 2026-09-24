@@ -6,6 +6,12 @@ A pure front-end, single-file web tool that generates chat-log images faithfully
 
 **在线试用 / Live Demo**: https://daming98.github.io/cyberpunk-message-generator/
 
+**完全自定义版 / Customizable version**: https://daming98.github.io/cyberpunk-message-generator/cyber-message-custom.html
+
+界面里直接调颜色与参数（约 90 项，按常用程度分组、可折叠）：改动实时预览、自动记住在本机浏览器，还能一键「复制配置代码」贴回文件。原版 `cyber-message.html` 保持不动。
+
+All colors and parameters (~90) are adjustable **right in the UI** (grouped by how often you would touch them, collapsible): live preview, remembered in your browser, plus a "Copy config code" button to paste back into the file. The original `cyber-message.html` stays untouched.
+
 ## 预览 / Preview
 
 以下为中文 / 英文两种语言下的界面与导出效果（左：中文，右：英文）。
